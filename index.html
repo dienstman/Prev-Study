@@ -1,0 +1,2261 @@
+<!DOCTYPE html>
+<html lang="pt-br" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PrevStudy - Pro</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #030712; /* Neutral deep slate */
+        }
+        .modal-blur { 
+            backdrop-filter: blur(12px); 
+            transition: all 0.3s ease;
+        }
+        .fade-in { 
+            animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
+        }
+        @keyframes fadeIn { 
+            from { opacity: 0; transform: translateY(12px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+        .correct-glow {
+            box-shadow: 0 0 25px -5px rgba(16, 185, 129, 0.2);
+        }
+        .incorrect-glow {
+            box-shadow: 0 0 25px -5px rgba(239, 68, 68, 0.2);
+        }
+        ::-webkit-scrollbar { 
+            width: 8px; 
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b1329;
+        }
+        ::-webkit-scrollbar-thumb { 
+            background: #1e293b; 
+            border-radius: 6px; 
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #334155;
+        }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col justify-between">
+
+    <!-- Header / Navigation -->
+    <nav class="bg-slate-950/80 border-b border-slate-800/80 p-4 sticky top-0 z-40 backdrop-blur-md">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="bg-indigo-600/20 text-indigo-400 p-2 rounded-xl border border-indigo-500/30">
+                    <span class="font-extrabold text-lg">P</span>
+                </div>
+                <div>
+                    <h1 class="text-lg font-black text-white leading-none">Prev<span class="text-indigo-400 font-bold">Study</span></h1>
+                    <span class="text-[10px] text-slate-400 font-semibold tracking-wider uppercase">Direito Previdenciário Pro</span>
+                </div>
+            </div>
+            
+            <div class="flex gap-2 items-center">
+                <!-- Sound Toggle -->
+                <button onclick="toggleMute()" id="sound-btn" class="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800 transition-all" title="Alternar som">
+                    🔊
+                </button>
+                <!-- Streak Badge -->
+                <div id="streak-counter" class="flex items-center gap-1.5 bg-amber-950/40 text-amber-400 px-3 py-1.5 rounded-xl text-xs font-bold border border-amber-900/40 shadow-inner">
+                    🔥 <span id="streak-value">0</span>
+                </div>
+                <!-- Reset Progress -->
+                <button onclick="confirmReset()" class="text-xs bg-rose-950/30 text-rose-400 border border-rose-900/40 hover:bg-rose-900/40 px-3 py-1.5 rounded-xl font-bold transition-all">
+                    Resetar
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <main class="max-w-4xl w-full mx-auto p-4 flex-grow">
+        
+        <!-- App Tab Selectors -->
+        <div class="flex border-b border-slate-800 mb-6 gap-2">
+            <button onclick="switchTab('quiz')" id="tab-quiz" class="py-2.5 px-4 font-bold text-sm border-b-2 border-indigo-500 text-indigo-400 transition-all flex items-center gap-2">
+                📋 Simulado Rápido
+            </button>
+            <button onclick="switchTab('vademecum')" id="tab-vademecum" class="py-2.5 px-4 font-bold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition-all flex items-center gap-2">
+                📖 Vade Mecum Integrado
+            </button>
+        </div>
+
+        <!-- DASHBOARD TAB: QUIZ -->
+        <div id="tab-content-quiz" class="space-y-6">
+            
+            <!-- Statistical Summary Dashboard -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-slate-950 border border-slate-850 p-4 rounded-2xl flex flex-col justify-between relative overflow-hidden group">
+                    <div class="absolute -right-4 -bottom-4 text-emerald-950/20 text-6xl font-black group-hover:scale-110 transition-transform">✓</div>
+                    <span class="text-slate-400 text-xs font-bold">Acertos</span>
+                    <span id="correct-count" class="text-2xl font-black text-emerald-400 mt-1">0</span>
+                </div>
+                <div class="bg-slate-950 border border-slate-850 p-4 rounded-2xl flex flex-col justify-between relative overflow-hidden group">
+                    <div class="absolute -right-4 -bottom-4 text-rose-950/20 text-6xl font-black group-hover:scale-110 transition-transform">✗</div>
+                    <span class="text-slate-400 text-xs font-bold">Erros</span>
+                    <span id="incorrect-count" class="text-2xl font-black text-rose-400 mt-1">0</span>
+                </div>
+                <div class="bg-slate-950 border border-slate-850 p-4 rounded-2xl flex flex-col justify-between relative overflow-hidden group">
+                    <div class="absolute -right-4 -bottom-4 text-amber-950/20 text-6xl font-black group-hover:scale-110 transition-transform">⚡</div>
+                    <span class="text-slate-400 text-xs font-bold">Aproveitamento</span>
+                    <span id="accuracy-rate" class="text-2xl font-black text-slate-100 mt-1">0%</span>
+                </div>
+                <div class="bg-slate-950 border border-slate-850 p-4 rounded-2xl flex flex-col justify-between relative overflow-hidden group">
+                    <div class="absolute -right-4 -bottom-4 text-blue-950/20 text-6xl font-black group-hover:scale-110 transition-transform">★</div>
+                    <span class="text-slate-400 text-xs font-bold">Maior Recorde</span>
+                    <span id="max-streak-value" class="text-2xl font-black text-blue-400 mt-1">0</span>
+                </div>
+            </div>
+
+            <!-- Quiz Filter Widget -->
+            <div class="bg-slate-950 border border-slate-900 rounded-2xl p-4 flex flex-col md:flex-row gap-4 justify-between items-stretch md:items-center">
+                <div class="flex flex-col gap-1 flex-grow">
+                    <label class="text-[10px] uppercase font-bold tracking-wider text-slate-400">Filtrar Tópico</label>
+                    <select id="filter-topic" onchange="applyFilters()" class="bg-slate-900 border border-slate-850 text-slate-100 text-xs font-semibold py-2 px-3 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none w-full">
+                        <option value="all">📚 Todos os Tópicos (Completo - 165 Q)</option>
+                        <option value="Princípios e Finalidade">🎯 Princípios e Finalidade</option>
+                        <option value="Conselho Nacional (CNPS)">🏛️ Conselho Nacional (CNPS)</option>
+                        <option value="Segurados Obrigatórios">👤 Segurados Obrigatórios</option>
+                        <option value="Segurado Especial">🌾 Segurado Especial</option>
+                        <option value="Qualidade de Segurado">🔄 Qualidade de Segurado</option>
+                        <option value="Dependentes">👥 Dependentes</option>
+                        <option value="Inscrições">✍️ Inscrições</option>
+                        <option value="Regulamento (Dec. 3048)">📜 Regulamento (Dec. 3048)</option>
+                    </select>
+                </div>
+                <div class="flex flex-col gap-1 md:w-48">
+                    <label class="text-[10px] uppercase font-bold tracking-wider text-slate-400">Dificuldade</label>
+                    <select id="filter-difficulty" onchange="applyFilters()" class="bg-slate-900 border border-slate-850 text-slate-100 text-xs font-semibold py-2 px-3 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none w-full">
+                        <option value="all">⭐ Todas</option>
+                        <option value="Fácil">Fácil</option>
+                        <option value="Média">Média</option>
+                        <option value="Difícil">Difícil</option>
+                        <option value="Máxima">Máxima</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Quiz Main Box -->
+            <div id="game-area" class="bg-slate-950 p-6 md:p-8 rounded-3xl shadow-2xl border border-slate-900 fade-in relative overflow-hidden transition-all duration-300">
+                <div class="flex justify-between items-center mb-6">
+                    <span id="q-topic" class="text-[10px] font-black uppercase tracking-widest text-indigo-300 bg-indigo-950/50 border border-indigo-900/50 px-2.5 py-1.5 rounded-lg">...</span>
+                    <div class="flex items-center gap-2">
+                        <span id="question-progress" class="text-xs text-slate-500 font-semibold">Questão --/--</span>
+                        <span id="q-difficulty" class="text-[10px] font-bold uppercase px-2 py-1 rounded-lg">...</span>
+                    </div>
+                </div>
+                
+                <!-- Main Question Content -->
+                <div class="min-h-[160px] flex flex-col justify-center mb-8">
+                    <p id="question-text" class="text-lg md:text-xl font-medium text-slate-100 leading-relaxed">
+                        Carregando banco de dados de legislação...
+                    </p>
+                </div>
+
+                <!-- Active Interaction Options -->
+                <div id="options-area" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <button onclick="checkAnswer(true)" class="group relative w-full bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white py-4 rounded-2xl font-bold transition-all shadow-lg shadow-indigo-950/50 flex flex-col items-center justify-center gap-1">
+                        <span class="text-base">Verdadeiro</span>
+                        <span class="text-[10px] opacity-50 font-normal hidden sm:inline">[Tecla V, S ou Seta Esquerda]</span>
+                    </button>
+                    <button onclick="checkAnswer(false)" class="group relative w-full bg-slate-900 hover:bg-slate-800 active:scale-95 text-slate-200 py-4 rounded-2xl font-bold transition-all border border-slate-850 flex flex-col items-center justify-center gap-1">
+                        <span class="text-base">Falso</span>
+                        <span class="text-[10px] opacity-50 font-normal hidden sm:inline">[Tecla F, N ou Seta Direita]</span>
+                    </button>
+                </div>
+
+                <!-- Feedback Area after checking answer -->
+                <div id="feedback-area" class="hidden space-y-6">
+                    <div class="border-t border-slate-900 pt-6">
+                        <div id="result-status" class="text-2xl font-black mb-3"></div>
+                        <div class="bg-slate-900/60 p-5 rounded-2xl border border-slate-850">
+                            <h4 class="text-xs uppercase font-extrabold text-indigo-400 mb-2">Comentário Técnico:</h4>
+                            <p id="explanation" class="text-slate-300 italic text-sm leading-relaxed"></p>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                        <button onclick="showLegalModal()" class="w-full bg-slate-900 border border-slate-800 py-3.5 rounded-2xl text-slate-300 font-semibold text-sm hover:bg-slate-800 active:scale-95 transition-all flex items-center justify-center gap-2">
+                            📖 Ver Fundamento Legal Completo
+                        </button>
+                        <button onclick="nextQuestion()" class="w-full bg-white text-slate-900 py-3.5 rounded-2xl font-black text-sm hover:bg-slate-100 active:scale-95 transition-all shadow-lg shadow-white/10 flex items-center justify-center gap-2">
+                            Próxima Questão ➔
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DASHBOARD TAB: VADE MECUM -->
+        <div id="tab-content-vademecum" class="hidden space-y-6">
+            <div class="bg-slate-950 border border-slate-900 rounded-3xl p-6 shadow-2xl">
+                <div class="mb-6">
+                    <h2 class="text-xl font-bold text-white mb-2">Legislação Comentada & Consulta</h2>
+                    <p class="text-sm text-slate-400">Explore toda a base de Direito Previdenciário consolidada no PrevStudy Pro. Filtre, busque por termos importantes ou estude os fundamentos direto na fonte.</p>
+                </div>
+
+                <!-- Custom Interactive Search Bar -->
+                <div class="flex flex-col sm:flex-row gap-3 mb-6">
+                    <div class="relative flex-grow">
+                        <input type="text" id="vade-search" oninput="renderVadeMecum()" placeholder="🔍 Pesquise termos ex: 'reclusão', 'facultativo', 'carência'..." class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
+                    </div>
+                    <select id="vade-topic-filter" onchange="renderVadeMecum()" class="bg-slate-900 border border-slate-800 text-slate-200 text-sm font-semibold rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="all">Todos os Temas</option>
+                        <option value="Princípios e Finalidade">Princípios e Finalidade</option>
+                        <option value="Conselho Nacional (CNPS)">Conselho Nacional (CNPS)</option>
+                        <option value="Segurados Obrigatórios">Segurados Obrigatórios</option>
+                        <option value="Segurado Especial">Segurado Especial</option>
+                        <option value="Qualidade de Segurado">Qualidade de Segurado</option>
+                        <option value="Dependentes">Dependentes</option>
+                        <option value="Inscrições">Inscrições</option>
+                        <option value="Regulamento (Dec. 3048)">Regulamento (Dec. 3048)</option>
+                    </select>
+                </div>
+
+                <!-- Vade Mecum Grid Output -->
+                <div id="vade-list" class="space-y-4 max-h-[550px] overflow-y-auto pr-2">
+                    <!-- Dynamic rendering output inside script -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- UI Custom Confirmation Dialog Modal -->
+    <div id="confirm-modal" class="hidden fixed inset-0 bg-black/80 modal-blur flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-950 border border-slate-800 rounded-3xl p-6 max-w-sm w-full shadow-2xl text-center fade-in">
+            <div class="w-14 h-14 bg-rose-950/50 text-rose-400 border border-rose-900/40 rounded-2xl flex items-center justify-center mx-auto mb-4 text-xl">⚠️</div>
+            <h3 class="text-lg font-bold mb-2 text-white" id="confirm-title">Zerar Progresso</h3>
+            <p class="text-slate-400 text-sm mb-6 leading-relaxed" id="confirm-message">Esta ação é definitiva. Deseja redefinir suas estatísticas, erros, acertos e histórico de respostas?</p>
+            <div class="flex gap-3 justify-center">
+                <button onclick="closeConfirmModal(false)" class="flex-1 py-2.5 bg-slate-900 hover:bg-slate-800 text-slate-300 rounded-xl text-xs font-semibold transition-all border border-slate-800">Cancelar</button>
+                <button onclick="closeConfirmModal(true)" class="flex-1 py-2.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-semibold transition-all shadow-lg shadow-rose-950/50">Sim, Zerar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- UI Custom Alert Dialog Modal -->
+    <div id="alert-modal" class="hidden fixed inset-0 bg-black/80 modal-blur flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-950 border border-slate-800 rounded-3xl p-6 max-w-sm w-full shadow-2xl text-center fade-in">
+            <div id="alert-icon" class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 text-xl">🏆</div>
+            <h3 class="text-lg font-bold mb-2 text-white" id="alert-title">Parabéns!</h3>
+            <p class="text-slate-400 text-sm mb-6 leading-relaxed" id="alert-message">Excelente trabalho.</p>
+            <button onclick="closeAlertModal()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold transition-all shadow-md shadow-indigo-950/50">Continuar Estudos</button>
+        </div>
+    </div>
+
+    <!-- Legal Foundation Detail Modal -->
+    <div id="legal-modal" class="hidden fixed inset-0 bg-black/80 modal-blur flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-950 border border-slate-850 rounded-3xl p-6 max-w-lg w-full max-h-[85vh] flex flex-col shadow-2xl fade-in">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="bg-indigo-950/60 text-indigo-400 p-2 rounded-xl border border-indigo-900/40 text-sm">⚖️</div>
+                <h2 class="text-lg font-extrabold text-white">Dispositivo Legal do RGPS</h2>
+            </div>
+            <div class="overflow-y-auto flex-grow mb-6 pr-2">
+                <div id="modal-content" class="text-slate-300 text-sm leading-relaxed space-y-4 bg-slate-900/50 p-4 rounded-2xl border border-slate-850"></div>
+            </div>
+            <button onclick="closeModal()" class="w-full bg-slate-900 hover:bg-slate-800 text-white py-3.5 rounded-2xl font-bold text-sm transition-all border border-slate-800">
+                Fechar Fundamentação
+            </button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-slate-950 p-4 border-t border-slate-900 text-center text-xs text-slate-500">
+        <div class="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2">
+            <span>PrevStudy Pro © 2026 • 165 Questões atualizadas (Lei 8.213/91 + Dec 3048/99)</span>
+            <span class="text-[10px] text-slate-600 font-mono">Construído em conformidade estrita com o Regulamento Geral</span>
+        </div>
+    </footer>
+
+    <script>
+        // Comprehensive Question Bank based strictly on user's updated Law 8.213/91 text (100 premium questions)
+        const questions = [
+            // TOPIC 1: Princípios e Finalidade (Arts. 1-2)
+            {
+                id: 1,
+                topic: "Princípios e Finalidade",
+                difficulty: "Fácil",
+                q: "A Previdência Social, mediante contribuição, tem por fim assegurar aos seus beneficiários meios indispensáveis de manutenção por motivo de desemprego voluntário.",
+                a: false,
+                explanation: "Incorreto. O amparo previdenciário no Art. 1º se destina especificamente à cobertura do desemprego INVOLUNTÁRIO, e não do voluntário.",
+                full: "Lei 8.213/91, Art. 1º: A Previdência Social, mediante contribuição, tem por fim assegurar aos seus beneficiários meios indispensáveis de manutenção, por motivo de incapacidade, desemprego involuntário, idade avançada, tempo de serviço, encargos familiares e prisão ou morte daqueles de quem dependiam economicamente."
+            },
+            {
+                id: 2,
+                topic: "Princípios e Finalidade",
+                difficulty: "Fácil",
+                q: "A cobertura por motivo de encargos familiares e prisão ou morte daqueles de quem dependiam economicamente faz parte das finalidades expressas do plano de benefícios da Previdência Social.",
+                a: true,
+                explanation: "Correto. O artigo 1º estabelece expressamente a cobertura de encargos familiares, prisão ou morte para quem dependia economicamente do segurado.",
+                full: "Lei 8.213/91, Art. 1º: [...] por motivo de incapacidade, desemprego involuntário, idade avançada, tempo de serviço, encargos familiares e prisão ou morte daqueles de quem dependiam economicamente."
+            },
+            {
+                id: 3,
+                topic: "Princípios e Finalidade",
+                difficulty: "Média",
+                q: "O princípio da universalidade de participação nos planos previdenciários rege o sistema de benefícios do RGPS.",
+                a: true,
+                explanation: "Correto. Trata-se do primeiro princípio enumerado no artigo 2º, estabelecendo a meta de estender a previdência à totalidade da população elegível.",
+                full: "Lei 8.213/91, Art. 2º: A Previdência Social rege-se pelos seguintes princípios e objetivos: I - universalidade de participação nos planos previdenciários;"
+            },
+            {
+                id: 4,
+                topic: "Princípios e Finalidade",
+                difficulty: "Fácil",
+                q: "A legislação previdenciária estabelece o princípio da distinção entre as populações urbanas e rurais, conferindo maior valor de benefícios aos segurados urbanos para equilibrar o mercado nacional.",
+                a: false,
+                explanation: "Incorreto. O princípio correto do art. 2º determina a uniformidade e equivalência dos benefícios e serviços às populações urbanas e rurais.",
+                full: "Lei 8.213/91, Art. 2º, II: uniformidade e equivalência dos benefícios e serviços às populações urbanas e rurais."
+            },
+            {
+                id: 5,
+                topic: "Princípios e Finalidade",
+                difficulty: "Média",
+                q: "O princípio da seletividade e distributividade aplica-se à prestação dos benefícios previdenciários.",
+                a: true,
+                explanation: "Correto. Permite focar a proteção social nas áreas de maior necessidade e distribuir renda de forma a reduzir as desigualdades sociais.",
+                full: "Lei 8.213/91, Art. 2º, III: seletividade e distributividade na prestação dos benefícios;"
+            },
+            {
+                id: 6,
+                topic: "Princípios e Finalidade",
+                difficulty: "Fácil",
+                q: "O cálculo dos benefícios desconsidera índices inflacionários, aplicando correção monetária somente se o benefício for superior a três salários-mínimos.",
+                a: false,
+                explanation: "Incorreto. O art. 2º estabelece que o cálculo de todos os benefícios deve considerar os salários-de-contribuição devidamente corrigidos monetariamente.",
+                full: "Lei 8.213/91, Art. 2º, IV: cálculo dos benefícios considerando-se os salários-de-contribuição corrigidos monetariamente;"
+            },
+            {
+                id: 7,
+                topic: "Princípios e Finalidade",
+                difficulty: "Média",
+                q: "A irredutibilidade do valor dos benefícios tem como fim primordial a preservação de seu poder aquisitivo.",
+                a: true,
+                explanation: "Correto. O artigo 2º, V, traz o comando de manter o valor real frente ao desgaste inflacionário do tempo.",
+                full: "Lei 8.213/91, Art. 2º, V: irredutibilidade do valor dos benefícios de forma a preservar-lhes o poder aquisitivo;"
+            },
+            {
+                id: 8,
+                topic: "Princípios e Finalidade",
+                difficulty: "Fácil",
+                q: "A renda mensal de qualquer benefício substituto do salário de contribuição ou do rendimento do trabalho do segurado poderá ser inferior ao salário-mínimo nas hipóteses de trabalho parcial.",
+                a: false,
+                explanation: "Incorreto. A lei determina que o benefício que substitui o salário de contribuição ou o rendimento do trabalho não poderá ser inferior ao salário-mínimo.",
+                full: "Lei 8.213/91, Art. 2º, VI: valor da renda mensal dos benefícios substitutos do salário-de-contribuição ou do rendimento do trabalho do segurado não inferior ao do salário-mínimo;"
+            },
+            {
+                id: 9,
+                topic: "Princípios e Finalidade",
+                difficulty: "Fácil",
+                q: "A previdência complementar no sistema do RGPS é facultativa e deve ser custeada obrigatoriamente e de forma exclusiva pelas empresas empregadoras.",
+                a: false,
+                explanation: "Incorreto. O custeio da previdência complementar é feito por contribuição adicional, sem obrigação de custeio patronal total.",
+                full: "Lei 8.213/91, Art. 2º, VII: previdência complementar facultativa, custeada por contribuição adicional;"
+            },
+            {
+                id: 10,
+                topic: "Princípios e Finalidade",
+                difficulty: "Média",
+                q: "A gestão administrativa da Previdência Social é centralizada no Ministério da Previdência Social, sem participação da comunidade para evitar conflitos de interesses.",
+                a: false,
+                explanation: "Incorreto. O sistema rege-se pelo princípio do caráter democrático e descentralizado da gestão administrativa, com participação comunitária.",
+                full: "Lei 8.213/91, Art. 2º, VIII: caráter democrático e descentralizado da gestão administrativa, com a participação do governo e da comunidade, em especial de trabalhadores em atividade, empregadores e aposentados."
+            },
+            {
+                id: 11,
+                topic: "Princípios e Finalidade",
+                difficulty: "Média",
+                q: "A participação democrática e descentralizada da comunidade na gestão administrativa previdenciária deve ser efetivada apenas no âmbito federal.",
+                a: false,
+                explanation: "Incorreto. O parágrafo único do artigo 2º dispõe explicitamente que a participação será em nível federal, estadual e municipal.",
+                full: "Lei 8.213/91, Art. 2º, Parágrafo único: A participação referida no inciso VIII deste artigo será efetivada a nível federal, estadual e municipal."
+            },
+
+            // TOPIC 2: Conselho Nacional de Previdência Social (CNPS) (Arts. 3-5)
+            {
+                id: 12,
+                topic: "Conselho Nacional (CNPS)",
+                difficulty: "Difícil",
+                q: "O Conselho Nacional de Previdência Social (CNPS) é órgão superior de deliberação colegiada composto por seis representantes do Governo Federal e nove representantes da sociedade civil.",
+                a: true,
+                explanation: "Correto. O artigo 3º fixa de modo exato a proporção entre os representantes do Governo e da sociedade civil.",
+                full: "Lei 8.213/91, Art. 3º: Fica instituído o Conselho Nacional de Previdência Social - CNPS, órgão superior de deliberação colegiada que terá como membros: I - seis representantes do Governo Federal; II - nove representantes da sociedade civil..."
+            },
+            {
+                id: 13,
+                topic: "Conselho Nacional (CNPS)",
+                difficulty: "Difícil",
+                q: "A representação da sociedade civil no CNPS conta com três representantes de aposentados e pensionistas, três de trabalhadores em atividade e três de empregadores.",
+                a: true,
+                explanation: "Correto. Essa é a repartição de cadeiras para a sociedade civil no conselho, dividida em três grupos de três titulares.",
+                full: "Lei 8.213/91, Art. 3º, II, 'a', 'b' e 'c'."
+            },
+            {
+                id: 14,
+                topic: "Conselho Nacional (CNPS)",
+                difficulty: "Média",
+                q: "O mandato dos representantes titulares da sociedade civil no CNPS é de dois anos, sendo vedada qualquer possibilidade de recondução posterior.",
+                a: false,
+                explanation: "Incorreto. A lei possibilita sim a recondução imediata por uma única vez.",
+                full: "Lei 8.213/91, Art. 3º, § 1º: Os membros do CNPS [...] mandato de 2 (dois) anos, podendo ser reconduzidos, de imediato, uma única vez."
+            },
+            {
+                id: 15,
+                topic: "Conselho Nacional (CNPS)",
+                difficulty: "Média",
+                q: "A nomeação de todos os membros do CNPS, tanto governamentais quanto da sociedade civil, e seus respectivos suplentes compete ao Presidente da República.",
+                a: true,
+                explanation: "Correto. É o Presidente da República quem nomeia oficialmente os indicados por meio de ato oficial.",
+                full: "Lei 8.213/91, Art. 3º, § 1º: Os membros do CNPS e seus respectivos suplentes serão nomeados pelo Presidente da República..."
+            },
+            {
+                id: 16,
+                topic: "Conselho Nacional (CNPS)",
+                difficulty: "Difícil",
+                q: "Os representantes dos trabalhadores em atividade, dos aposentados, dos empregadores e respectivos suplentes no CNPS são indicados em listas tríplices formadas pelo Congresso Nacional.",
+                a: false,
+                explanation: "Incorreto. A indicação é de competência exclusiva das centrais sindicais e das confederações nacionais.",
+                full: "Lei 8.213/91, Art. 3º, § 2º: Os representantes dos trabalhadores em atividades, dos aposentados, dos empregadores e seus respectivos suplentes serão indicados pelas centrais sindicais e confederações nacionais."
+            },
+            {
+                id: 17,
+                topic: "Conselho Nacional (CNPS)",
+                difficulty: "Média",
+                q: "O CNPS reunir-se-á ordinariamente, no mínimo, uma vez a cada bimestre, conforme seu regimento interno.",
+                a: false,
+                explanation: "Incorreto. O conselho reúne-se ordinariamente uma vez por mês.",
+                full: "Lei 8.213/91, Art. 3º, § 3º: O CNPS reunir-se-á ordinariamente, uma vez por mês, por convocação de seu Presidente..."
+            },
+            {
+                id: 18,
+                topic: "Conselho Nacional (CNPS)",
+                difficulty: "Média",
+                q: "Caso haja requerimento da maioria dos conselheiros do CNPS, a reunião ordinária mensal não poderá ser adiada por mais de 15 dias.",
+                a: true,
+                explanation: "Correto. O artigo 3º do regulamento impõe esse limite temporal rígido para evitar o esvaziamento das pautas de discussão.",
+                full: "Lei 8.213/91, Art. 3º, § 3º: [...] não podendo ser adiada a reunião por mais de 15 (quinze) dias se houver requerimento nesse sentido da maioria dos conselheiros."
+            },
+            {
+                id: 19,
+                topic: "Conselho Nacional (CNPS)",
+                difficulty: "Média",
+                q: "As reuniões extraordinárias do CNPS podem ser convocadas pelo seu Presidente ou por solicitação de qualquer conselheiro isoladamente.",
+                a: false,
+                explanation: "Incorreto. A convocação extraordinária por iniciativa dos membros exige o requerimento de, no mínimo, um terço deles.",
+                full: "Lei 8.213/91, Art. 3º, § 4º: Poderá ser convocada reunião extraordinária por seu Presidente ou a requerimento de um terço de seus membros..."
+            },
+            {
+                id: 20,
+                topic: "Conselho Nacional (CNPS)",
+                difficulty: "Média",
+                q: "As ausências ao trabalho dos representantes dos trabalhadores em atividade no CNPS, decorrentes do exercício do conselho, deverão ser abonadas e computadas como jornada efetivamente trabalhada.",
+                a: true,
+                explanation: "Correto. A lei assegura que os representantes não sofram prejuízos financeiros nem funcionais pela participação ativa nas reuniões do CNPS.",
+                full: "Lei 8.213/91, Art. 3º, § 6º: As ausências ao trabalho dos representantes dos trabalhadores em atividade, decorrentes das atividades do Conselho, serão abonadas computando-se como jornada efetivamente trabalhada..."
+            },
+            {
+                id: 21,
+                topic: "Conselho Nacional (CNPS)",
+                difficulty: "Difícil",
+                q: "Aos representantes dos trabalhadores em atividade no CNPS é garantida estabilidade empregatícia desde a nomeação até um ano após o término do mandato de representação.",
+                a: true,
+                explanation: "Correto. Trata-se de uma relevante garantia de estabilidade provisória para que o representante possa exercer seu mister com independência.",
+                full: "Lei 8.213/91, Art. 3º, § 7º: Aos membros do CNPS, enquanto representantes dos trabalhadores em atividade, titulares e suplentes, é assegurada a estabilidade no emprego, da nomeação até um ano após o término do mandato..."
+            },
+            {
+                id: 22,
+                topic: "Conselho Nacional (CNPS)",
+                difficulty: "Difícil",
+                q: "O representante dos trabalhadores com assento no CNPS, detentor de estabilidade, poderá ser demitido sem justa causa se a empresa pagar indenização em dobro.",
+                a: false,
+                explanation: "Incorreto. A demissão desse trabalhador está condicionada apenas à ocorrência de falta grave devidamente provada em processo judicial.",
+                full: "Lei 8.213/91, Art. 3º, § 7º: [...] somente podendo ser demitidos por motivo de falta grave, regularmente comprovada através de processo judicial."
+            },
+            {
+                id: 23,
+                topic: "Conselho Nacional (CNPS)",
+                difficulty: "Média",
+                q: "Compete ao CNPS aprovar as propostas de orçamentos da Previdência Social antes de sua consolidação no orçamento geral da Seguridade Social.",
+                a: true,
+                explanation: "Correto. O controle prévio do orçamento setorial é competência conferida ao CNPS pelo art. 4º, IV.",
+                full: "Lei 8.213/91, Art. 4º: Compete ao Conselho Nacional de Previdência Social - CNPS: IV - apreciar e aprovar as propostas orçamentárias da Previdência Social, antes de sua consolidação na proposta orçamentária da Seguridade Social;"
+            },
+            {
+                id: 24,
+                topic: "Conselho Nacional (CNPS)",
+                difficulty: "Média",
+                q: "As decisões proferidas pelo CNPS devem ser publicadas de forma obrigatória no Diário Oficial da União.",
+                a: true,
+                explanation: "Correto. A publicidade oficial é uma exigência essencial para a validade das deliberações do CNPS.",
+                full: "Lei 8.213/91, Art. 4º, Parágrafo único: As decisões proferidas pelo CNPS deverão ser publicadas no Diário Oficial da União."
+            },
+            {
+                id: 25,
+                topic: "Conselho Nacional (CNPS)",
+                difficulty: "Difícil",
+                q: "Os órgãos do Governo devem enviar a proposta orçamentária detalhada da Previdência ao CNPS com antecedência de, no mínimo, dois meses antes de sua remessa ao Congresso Nacional.",
+                a: true,
+                explanation: "Correto. Esse prazo é assegurado em lei para que o CNPS tenha tempo hábil de analisar e votar o orçamento.",
+                full: "Lei 8.213/91, Art. 5º, II: encaminhar ao CNPS, com antecedência mínima de 2 (dois) meses do seu envio ao Congresso Nacional, a proposta orçamentária da Previdência Social, devidamente detalhada."
+            },
+
+            // TOPIC 3: Regimes de Previdência Social (Art. 9)
+            {
+                id: 26,
+                topic: "Princípios e Finalidade",
+                difficulty: "Fácil",
+                q: "O Regime Geral de Previdência Social (RGPS) abrange e garante a cobertura de todas as situações de riscos sociais expressas no Art. 1º, incluindo, de forma integrada, o seguro contra desemprego involuntário.",
+                a: false,
+                explanation: "Incorreto. O seguro contra desemprego involuntário é expressamente excluído da cobertura do RGPS, sendo regulado por legislação própria fora do plano geral.",
+                full: "Lei 8.213/91, Art. 9º, § 1º: O Regime Geral de Previdência Social - RGPS garante a cobertura de todas as situações expressas no art. 1º desta Lei, exceto as de desemprego involuntário, objeto de lei específica..."
+            },
+
+            // TOPIC 4: Segurados Obrigatórios (Art. 10 - 11)
+            {
+                id: 27,
+                topic: "Segurados Obrigatórios",
+                difficulty: "Média",
+                q: "A prestação de serviço em caráter eventual, sob dependência e remuneração, enquadra o trabalhador urbano como segurado obrigatório na categoria de empregado.",
+                a: false,
+                explanation: "Incorreto. O enquadramento como empregado exige o caráter de NÃO eventualidade na prestação dos serviços.",
+                full: "Lei 8.213/91, Art. 11, I, 'a': aquele que presta serviço de natureza urbana ou rural à empresa, em caráter não eventual, sob sua subordinação e mediante remuneração, inclusive como diretor empregado;"
+            },
+            {
+                id: 28,
+                topic: "Segurados Obrigatórios",
+                difficulty: "Média",
+                q: "O diretor de empresa que tenha vínculo empregatício de subordinação (diretor empregado) é enquadrado no RGPS como segurado empregado.",
+                a: true,
+                explanation: "Correto. O fato de exercer funções de direção não afasta o enquadramento de empregado, desde que mantida a relação subordinada.",
+                full: "Lei 8.213/91, Art. 11, I, 'a': [...] inclusive como diretor empregado;"
+            },
+            {
+                id: 29,
+                topic: "Segurados Obrigatórios",
+                difficulty: "Difícil",
+                q: "O trabalhador contratado temporariamente por empresa de trabalho temporário para atender a necessidade transitória de outra empresa é considerado segurado empregado no RGPS.",
+                a: true,
+                explanation: "Correto. A modalidade de contratação temporária legal enquadra o trabalhador como segurado obrigatório empregado.",
+                full: "Lei 8.213/91, Art. 11, I, 'b': aquele que, contratado por empresa de trabalho temporário, definida em legislação específica, presta serviço para atender a necessidade transitória..."
+            },
+            {
+                id: 30,
+                topic: "Segurados Obrigatórios",
+                difficulty: "Difícil",
+                q: "O brasileiro ou o estrangeiro domiciliado e contratado no Brasil para trabalhar como empregado em sucursal ou agência de empresa nacional no exterior é segurado facultativo no RGPS.",
+                a: false,
+                explanation: "Incorreto. Trata-se de hipótese expressa de enquadramento como segurado obrigatório na categoria de empregado.",
+                full: "Lei 8.213/91, Art. 11, I, 'c': o brasileiro ou o estrangeiro domiciliado e contratado no Brasil para trabalhar como empregado em sucursal ou agência de empresa nacional no exterior;"
+            },
+            {
+                id: 31,
+                topic: "Segurados Obrigatórios",
+                difficulty: "Difícil",
+                q: "O brasileiro que presta serviço no Brasil a uma missão diplomática ou repartição consular estrangeira é obrigatoriamente filiado como empregado, exceto se estiver amparado pela legislação do respectivo país estrangeiro.",
+                a: true,
+                explanation: "Correto. Trata-se de previsão legal para garantir proteção securitária aos nacionais que prestam serviço a governos estrangeiros no Brasil.",
+                full: "Lei 8.213/91, Art. 11, I, 'd': o brasileiro amparado pela legislação previdenciária do país da respectiva missão diplomática ou repartição consular;"
+            },
+            {
+                id: 32,
+                topic: "Segurados Obrigatórios",
+                difficulty: "Difícil",
+                q: "O brasileiro civil que trabalha para a União no exterior, em organismos oficiais internacionais nos quais o Brasil seja membro efetivo, é segurado empregado do RGPS, exceto se amparado pela previdência do país de domicílio.",
+                a: true,
+                explanation: "Correto. A legislação mantém a filiação obrigatória como empregado do RGPS para brasileiros no serviço público federal no exterior, salvo proteção local do país do domicílio.",
+                full: "Lei 8.213/91, Art. 11, I, 'e': o brasileiro civil que trabalha para a União, no exterior, em organismos oficiais brasileiros ou internacionais [...] salvo se segurado na forma da legislação vigente do país do domicílio;"
+            },
+            {
+                id: 33,
+                topic: "Segurados Obrigatórios",
+                difficulty: "Máxima",
+                q: "O servidor público ocupante de cargo exclusivamente em comissão, sem vínculo efetivo com a União, autarquias federais ou fundações públicas federais, é filiado ao RGPS como segurado empregado.",
+                a: true,
+                explanation: "Correto. Cargos puramente em comissão de livre nomeação e exoneração, sem estabilidade efetiva, filiam-se obrigatoriamente ao RGPS.",
+                full: "Lei 8.213/91, Art. 11, I, 'g': o servidor público ocupante de cargo em comissão, sem vínculo efetivo com a União, Autarquias, inclusive em regime especial, e Fundações Públicas Federais."
+            },
+            {
+                id: 34,
+                topic: "Segurados Obrigatórios",
+                difficulty: "Difícil",
+                q: "O exercente de mandato eletivo federal, estadual ou municipal, mesmo que esteja vinculado a Regime Próprio de Previdência Social, deve ser obrigatoriamente filiado ao RGPS.",
+                a: false,
+                explanation: "Incorreto. O detentor de mandato eletivo só filia-se ao RGPS se não estiver amparado por regime próprio de previdência social (RPPS).",
+                full: "Lei 8.213/91, Art. 11, I, 'h' e 'j': o exercente de mandato eletivo federal, estadual ou municipal, desde que não vinculado a regime próprio de previdência social;"
+            },
+            {
+                id: 35,
+                topic: "Segurados Obrigatórios",
+                difficulty: "Média",
+                q: "O empregado de organismo oficial internacional ou estrangeiro em funcionamento no Brasil é segurado obrigatório, salvo se estiver sob regime próprio de previdência social.",
+                a: true,
+                explanation: "Correto. O trabalhador que exerce suas funções nesse tipo de organismo filia-se ao RGPS se não gozar de regime securitário próprio.",
+                full: "Lei 8.213/91, Art. 11, I, 'i': o empregado de organismo oficial internacional ou estrangeiro em funcionamento no Brasil, salvo quando coberto por regime próprio de previdência social;"
+            },
+            {
+                id: 36,
+                topic: "Segurados Obrigatórios",
+                difficulty: "Fácil",
+                q: "A prestação de serviço contínuo a pessoa ou família, no âmbito de sua residência, com fins comerciais lucrativos, enquadra o trabalhador como empregado doméstico.",
+                a: false,
+                explanation: "Incorreto. A ausência de fins lucrativos por parte do empregador doméstico é elemento essencial para a tipicidade dessa categoria.",
+                full: "Lei 8.213/91, Art. 11, II: como empregado doméstico: aquele que presta serviço de natureza contínua a pessoa ou família, no âmbito residencial desta, em atividades sem fins lucrativos;"
+            },
+            {
+                id: 37,
+                topic: "Segurados Obrigatórios",
+                difficulty: "Difícil",
+                q: "O aposentado pelo RGPS que volta a exercer qualquer atividade remunerada abrangida pelo regime de previdência fica isento da filiação e de contribuições para a seguridade social.",
+                a: false,
+                explanation: "Incorreto. O aposentado do RGPS que retorna ao mercado de trabalho é segurado obrigatório em relação a esta nova atividade, devendo recolher contribuições de custeio.",
+                full: "Lei 8.213/91, Art. 11, § 3º: O aposentado pelo Regime Geral de Previdência Social - RGPS que estiver exercendo ou que voltar a exercer atividade abrangida por este Regime é segurado obrigatório..."
+            },
+            {
+                id: 38,
+                topic: "Segurados Obrigatórios",
+                difficulty: "Difícil",
+                q: "O dirigente sindical mantém, durante o período de cumprimento do seu mandato eletivo de representação, o mesmo enquadramento no RGPS que detinha antes da investidura.",
+                a: true,
+                explanation: "Correto. O mandato sindical preserva o status e a categoria previdenciária original do trabalhador.",
+                full: "Lei 8.213/91, Art. 11, § 4º: O dirigente sindical mantém, durante o exercício do mandato eletivo, o mesmo enquadramento do Regime Geral de Previdência Social - RGPS de antes da investidura."
+            },
+            {
+                id: 39,
+                topic: "Segurados Obrigatórios",
+                difficulty: "Média",
+                q: "O titular de cargo de Ministro de Estado, Secretário Estadual, Distrital ou Municipal, sem vínculo de carreira efetivo, enquadra-se no RGPS como trabalhador avulso.",
+                a: false,
+                explanation: "Incorreto. Esses agentes políticos sem vínculo de cargo efetivo equiparam-se ao segurado empregado ocupante de cargo em comissão.",
+                full: "Lei 8.213/91, Art. 11, § 5º: Aplica-se o disposto na alínea g do inciso I do caput ao ocupante de cargo de Ministro de Estado, de Secretário Estadual, Distrital ou Municipal, sem vínculo efetivo..."
+            },
+
+            // TOPIC 5: Contribuinte Individual (Art. 11, V)
+            {
+                id: 40,
+                topic: "Segurados Obrigatórios",
+                difficulty: "Difícil",
+                q: "A pessoa física proprietária que explora atividade de agricultura ou pecuária, em área superior a 4 módulos fiscais, é classificada como segurada especial.",
+                a: false,
+                explanation: "Incorreto. Ultrapassado o limite legal de quatro módulos fiscais, o produtor enquadra-se como contribuinte individual.",
+                full: "Lei 8.213/91, Art. 11, V, 'a': [...] que explora atividade agropecuária, a qualquer título [...] em área superior a 4 (quatro) módulos fiscais;"
+            },
+            {
+                id: 41,
+                topic: "Segurados Obrigatórios",
+                difficulty: "Difícil",
+                q: "O produtor que explora atividade agropecuária em área inferior a 4 módulos fiscais, mas que se utilize do auxílio de prepostos ou empregados, é enquadrado como contribuinte individual.",
+                a: true,
+                explanation: "Correto. O uso de empregados permanentes ou prepostos retira a característica de subsistência familiar do segurado especial, transpondo-o para contribuinte individual.",
+                full: "Lei 8.213/91, Art. 11, V, 'a': [...] ou, quando em área igual ou inferior a 4 (quatro) módulos fiscais ou atividade pesqueira, com auxílio de empregados ou por intermédio de prepostos..."
+            },
+            {
+                id: 42,
+                topic: "Segurados Obrigatórios",
+                difficulty: "Média",
+                q: "A pessoa física que explora atividade de garimpo em caráter permanente ou temporário, de forma direta ou intermediada por prepostos, com ou sem auxílio de empregados, é filiada como contribuinte individual.",
+                a: true,
+                explanation: "Correto. Os garimpeiros autônomos são enquadrados legalmente na modalidade de contribuinte individual.",
+                full: "Lei 8.213/91, Art. 11, V, 'b': a pessoa física, proprietária ou não, que explora atividade de extração mineral - garimpo..."
+            },
+            {
+                id: 43,
+                topic: "Segurados Obrigatórios",
+                difficulty: "Fácil",
+                q: "O ministro de confissão religiosa e o membro de ordem ou congregação religiosa são considerados segurados facultativos no RGPS.",
+                a: false,
+                explanation: "Incorreto. Ministros religiosos de qualquer confissão e membros de institutos de vida consagrada enquadram-se como contribuintes individuais.",
+                full: "Lei 8.213/91, Art. 11, V, 'c': o ministro de confissão religiosa e o membro de instituto de vida consagrada, de congregação ou de ordem religiosa;"
+            },
+            {
+                id: 44,
+                topic: "Segurados Obrigatórios",
+                difficulty: "Difícil",
+                q: "O brasileiro civil que trabalha no exterior para organismo oficial internacional do qual o Brasil seja membro efetivo é filiado ao RGPS como contribuinte individual, caso não possua a cobertura de regime próprio.",
+                a: true,
+                explanation: "Correto. Trata-se de regra residual para garantir proteção aos brasileiros que trabalham em entidades internacionais, sem vinculação própria.",
+                full: "Lei 8.213/91, Art. 11, V, 'e': o brasileiro civil que trabalha no exterior para organismo oficial internacional do qual o Brasil é membro efetivo [...] salvo quando coberto por regime próprio de previdência social;"
+            },
+            {
+                id: 45,
+                topic: "Segurados Obrigatórios",
+                difficulty: "Difícil",
+                q: "O diretor não empregado de sociedade anônima e o sócio-gerente que recebam remuneração decorrente de seu trabalho em empresa urbana ou rural são enquadrados como segurados empregados.",
+                a: false,
+                explanation: "Incorreto. Enquadram-se na categoria de contribuintes individuais devido à natureza autônoma de suas funções corporativas combinada com remuneração.",
+                full: "Lei 8.213/91, Art. 11, V, 'f': o titular de firma individual [...] o diretor não empregado e o membro de conselho de administração de sociedade anônima [...] que recebam remuneração decorrente de seu trabalho..."
+            },
+            {
+                id: 46,
+                topic: "Segurados Obrigatórios",
+                difficulty: "Média",
+                q: "O síndico ou administrador eleito para exercer atividade de direção condominial, que receba remuneração por esse encargo, é segurado obrigatório na categoria de contribuinte individual.",
+                a: true,
+                explanation: "Correto. Se o cargo de síndico for remunerado (ou houver dispensa de cota em contrapartida), haverá filiação como contribuinte individual.",
+                full: "Lei 8.213/91, Art. 11, V, 'f': [...] bem como o síndico ou administrador eleito para exercer atividade de direção condominial, desde que recebam remuneração;"
+            },
+            {
+                id: 47,
+                topic: "Segurados Obrigatórios",
+                difficulty: "Média",
+                q: "O trabalhador que presta serviços de natureza urbana ou rural, em caráter puramente eventual, a uma ou mais empresas, sem relação de emprego, é considerado trabalhador avulso.",
+                a: false,
+                explanation: "Incorreto. O prestador de serviço de caráter eventual sem subordinação é enquadrado como contribuinte individual (autônomo).",
+                full: "Lei 8.213/91, Art. 11, V, 'g': quem presta serviço de natureza urbana ou rural, em caráter eventual, a uma ou mais empresas, sem relação de emprego;"
+            },
+            {
+                id: 48,
+                topic: "Segurados Obrigatórios",
+                difficulty: "Fácil",
+                q: "A pessoa física que exerce, por conta própria, atividade econômica de natureza urbana com fins lucrativos é classificada no RGPS como contribuinte individual.",
+                a: true,
+                explanation: "Correto. O profissional autônomo urbano é contribuinte individual nos termos do art. 11, V, 'h'.",
+                full: "Lei 8.213/91, Art. 11, V, 'h': a pessoa física que exerce, por conta própria, atividade econômica de natureza urbana, com fins lucrativos ou não;"
+            },
+
+            // TOPIC 6: Trabalhador Avulso (Art. 11, VI)
+            {
+                id: 49,
+                topic: "Segurados Obrigatórios",
+                difficulty: "Média",
+                q: "O trabalhador avulso caracteriza-se pela prestação de serviço de natureza urbana ou rural a diversas empresas, com vínculo empregatício direto com cada tomadora.",
+                a: false,
+                explanation: "Incorreto. A ausência de vínculo empregatício é a característica marcante do trabalho avulso, cuja intermediação de mão de obra é regulada.",
+                full: "Lei 8.213/91, Art. 11, VI: como trabalhador avulso: quem presta, a diversas empresas, sem vínculo empregatício, serviço de natureza urbana ou rural definidos no Regulamento;"
+            },
+
+            // TOPIC 7: Segurado Especial (Art. 11, VII e §§)
+            {
+                id: 50,
+                topic: "Segurado Especial",
+                difficulty: "Média",
+                q: "O segurado especial deve residir obrigatoriamente no imóvel rural onde desempenha a sua respectiva atividade produtiva.",
+                a: false,
+                explanation: "Incorreto. A lei autoriza que o segurado especial resida no imóvel rural ou em aglomerado urbano ou rural próximo a ele.",
+                full: "Lei 8.213/91, Art. 11, VII: como segurado especial: a pessoa física residente no imóvel rural ou em aglomerado urbano ou rural próximo a ele..."
+            },
+            {
+                id: 51,
+                topic: "Segurado Especial",
+                difficulty: "Média",
+                q: "Considera-se segurado especial o produtor que explore atividade agropecuária em área de até 4 (quatro) módulos fiscais.",
+                a: true,
+                explanation: "Correto. A metragem de até quatro módulos fiscais constitui o teto legal para o enquadramento simplificado.",
+                full: "Lei 8.213/91, Art. 11, VII, 'a', 1: produtor [...] que explore atividade: 1. agropecuária em área de até 4 (quatro) módulos fiscais;"
+            },
+            {
+                id: 52,
+                topic: "Segurado Especial",
+                difficulty: "Difícil",
+                q: "O seringueiro ou extrativista vegetal que faça da atividade extrativa seu principal meio de vida enquadra-se como segurado especial.",
+                a: true,
+                explanation: "Correto. O seringueiro e o extrativista vegetal são expressamente equiparados ao pequeno produtor rural.",
+                full: "Lei 8.213/91, Art. 11, VII, 'a', 2: de seringueiro ou extrativista vegetal que exerça suas atividades [...] e faça dessas atividades o principal meio de vida;"
+            },
+            {
+                id: 53,
+                topic: "Segurado Especial",
+                difficulty: "Média",
+                q: "O pescador artesanal que faça da pesca sua profissão habitual ou principal meio de vida é enquadrado no RGPS na categoria de contribuinte individual.",
+                a: false,
+                explanation: "Incorreto. O pescador artesanal que atua individualmente ou em regime familiar é enquadrado como segurado especial.",
+                full: "Lei 8.213/91, Art. 11, VII, 'b': pescador artesanal ou a este assemelhado que faça da pesca profissão habitual ou principal meio de vida; e"
+            },
+            {
+                id: 54,
+                topic: "Segurado Especial",
+                difficulty: "Difícil",
+                q: "O cônjuge, o companheiro e o filho maior de 16 anos do segurado especial, que trabalhem com o grupo familiar na atividade rural, são também classificados como segurados especiais.",
+                a: true,
+                explanation: "Correto. O grupo familiar que atua conjuntamente recebe a mesma proteção securitária na qualidade de segurado especial.",
+                full: "Lei 8.213/91, Art. 11, VII, 'c': cônjuge ou companheiro, bem como filho maior de 16 (dezesseis) anos de idade ou a este equiparado [...] que, comprovadamente, trabalhem com o grupo familiar respectivo."
+            },
+            {
+                id: 55,
+                topic: "Segurado Especial",
+                difficulty: "Difícil",
+                q: "Entende-se por regime de economia familiar a atividade exercida em condições de mútua colaboração, admitindo-se livremente a contratação de empregados permanentes de forma contínua.",
+                a: false,
+                explanation: "Incorreto. O regime de economia familiar veda expressamente a contratação ou utilização de trabalhadores assalariados de caráter permanente.",
+                full: "Lei 8.213/91, Art. 11, § 1º: Entende-se como regime de economia familiar a atividade [...] exercida em condições de mútua dependência e colaboração, sem a utilização de empregados permanentes."
+            },
+            {
+                id: 56,
+                topic: "Segurado Especial",
+                difficulty: "Média",
+                q: "Caso o indivíduo exerça, concomitantemente, mais de uma atividade remunerada sujeita ao RGPS, ele será filiado obrigatoriamente apenas àquela de maior rendimento mensal.",
+                a: false,
+                explanation: "Incorreto. O sistema prevê a obrigatoriedade de filiação múltipla concomitante para cada atividade geradora de renda exercida.",
+                full: "Lei 8.213/91, Art. 11, § 2º: Todo aquele que exercer, concomitantemente, mais de uma atividade remunerada sujeita ao Regime Geral de Previdência Social é obrigatoriamente filiado em relação a cada uma delas."
+            },
+            {
+                id: 57,
+                topic: "Segurado Especial",
+                difficulty: "Difícil",
+                q: "Para que o cônjuge, o companheiro e os filhos do segurado especial sejam qualificados como tais, exige-se comprovação de que desempenham participação ativa nas atividades rurais da família.",
+                a: true,
+                explanation: "Correto. A lei veda a extensão automática do benefício se o membro da família não cooperar ativamente no trabalho rural.",
+                full: "Lei 8.213/91, Art. 11, § 6º: Para serem considerados segurados especiais, o cônjuge ou companheiro e os filhos maiores de 16 (dezesseis) anos ou os a estes equiparados deverão ter participação ativa nas atividades rurais do grupo familiar."
+            },
+            {
+                id: 58,
+                topic: "Segurado Especial",
+                difficulty: "Máxima",
+                q: "O grupo familiar do segurado especial pode contratar trabalhadores por prazo determinado à razão de, no máximo, 120 pessoas por dia no ano civil.",
+                a: true,
+                explanation: "Correto. Trata-se da cota máxima de contratação sazonal autorizada para o segurado especial sem descaracterizar sua condição jurídica.",
+                full: "Lei 8.213/91, Art. 11, § 7º: O grupo familiar poderá utilizar-se de empregados contratados por prazo determinado [...] à razão de no máximo 120 (cento e vinte) pessoas por dia no ano civil..."
+            },
+            {
+                id: 59,
+                topic: "Segurado Especial",
+                difficulty: "Difícil",
+                q: "O período em que o trabalhador contratado temporariamente pelo segurado especial estiver afastado em decorrência de auxílio-doença é computado para o limite de 120 dias por ano civil.",
+                a: false,
+                explanation: "Incorreto. O período de afastamento motivado por auxílio-doença é expressamente excluído da contagem dos dias de limite da contratação.",
+                full: "Lei 8.213/91, Art. 11, § 7º: [...] não sendo computado nesse prazo o período de afastamento em decorrência da percepção de auxílio-doença."
+            },
+            {
+                id: 60,
+                topic: "Segurado Especial",
+                difficulty: "Média",
+                q: "A outorga, por meio de contrato escrito de parceria, de até 50% de imóvel rural não superior a 4 módulos fiscais descaracteriza a condição de segurado especial do proprietário, independentemente de ele continuar na atividade.",
+                a: false,
+                explanation: "Incorreto. A outorga de até 50% de terra de pequeno imóvel rural não descaracteriza o proprietário, contanto que continue exercendo atividade rural.",
+                full: "Lei 8.213/91, Art. 11, § 8º: Não descaracteriza a condição de segurado especial: I - a outorga, por meio de contrato escrito de parceria, meação ou comodato, de até 50% (cinquenta por cento) de imóvel rural cuja área total não seja superior a 4 (quatro) módulos fiscais..."
+            },
+            {
+                id: 61,
+                topic: "Segurado Especial",
+                difficulty: "Difícil",
+                q: "A hospedagem turística explorada na propriedade rural do segurado especial, por período não superior a 120 dias ao ano, não descaracteriza a sua qualificação previdenciária.",
+                a: true,
+                explanation: "Correto. O turismo rural é incentivado em regime de economia familiar, com teto de exploração de até 120 dias ao ano.",
+                full: "Lei 8.213/91, Art. 11, § 8º, II: a exploração da atividade turística da propriedade rural, inclusive com hospedagem, por não mais de 120 (cento e vinte) dias ao ano;"
+            },
+            {
+                id: 62,
+                topic: "Segurado Especial",
+                difficulty: "Difícil",
+                q: "O produtor rural em regime de economia familiar que participar de plano de previdência complementar privado perde de forma automática a qualidade de segurado especial do RGPS.",
+                a: false,
+                explanation: "Incorreto. A filiação previdenciária de caráter complementar de classe não anula o status protetivo de segurado especial.",
+                full: "Lei 8.213/91, Art. 11, § 8º, III: a participação em plano de previdência complementar instituído por entidade classista..."
+            },
+            {
+                id: 63,
+                topic: "Segurado Especial",
+                difficulty: "Média",
+                q: "Ser beneficiário de programa oficial de assistência social do governo não descaracteriza a condição previdenciária de segurado especial da pessoa ou do seu grupo familiar.",
+                a: true,
+                explanation: "Correto. Benefícios socioassistenciais governamentais (como o Bolsa Família) coexistem harmonicamente com o status de segurado especial.",
+                full: "Lei 8.213/91, Art. 11, § 8º, IV: ser beneficiário ou fazer parte de grupo familiar que tem algum componente que seja beneficiário de programa assistencial oficial de governo;"
+            },
+            {
+                id: 64,
+                topic: "Segurado Especial",
+                difficulty: "Média",
+                q: "A associação do segurado especial a cooperativa de trabalho descaracteriza a sua condição de segurado especial.",
+                a: true,
+                explanation: "Correto. A associação a cooperativas em geral é permitida, mas as cooperativas de TRABALHO estão expressamente excetuadas e descaracterizam a condição de segurado especial.",
+                full: "Lei 8.213/91, Art. 11, § 8º, VI: associação, exceto em cooperativa de trabalho, conforme regulamento..."
+            },
+            {
+                id: 65,
+                topic: "Segurado Especial",
+                difficulty: "Difícil",
+                q: "O integrante de grupo familiar rural é descaracterizado como segurado especial caso o grupo familiar passe a contar com outra fonte de rendimento decorrente de qualquer atividade artística, independentemente de seu valor.",
+                a: false,
+                explanation: "Incorreto. Rendimentos de atividade artística somente descaracterizam o segurado se o valor mensal for igual ou superior ao menor benefício previdenciário de prestação continuada.",
+                full: "Lei 8.213/91, Art. 11, § 9º, VIII: atividade artística, desde que em valor mensal inferior ao menor benefício de prestação continuada da Previdência Social."
+            },
+            {
+                id: 66,
+                topic: "Segurado Especial",
+                difficulty: "Média",
+                q: "O segurado especial que passe a exercer mandato político de vereador do Município no qual desempenha sua atividade rural mantém o seu enquadramento na referida categoria de segurado especial.",
+                a: true,
+                explanation: "Correto. O exercício do mandato de vereador na mesma localidade rural constitui exceção expressa à perda do status de segurado especial.",
+                full: "Lei 8.213/91, Art. 11, § 9º, V, 'a': mandato de vereador do Município em que desenvolve a atividade rural;"
+            },
+            {
+                id: 67,
+                topic: "Segurado Especial",
+                difficulty: "Média",
+                q: "O segurado especial que passar a participar de sociedade empresária na condição de sócio de microempresa de objeto agrícola com sede em município limítrofe ao seu não será excluído da categoria previdenciária.",
+                a: true,
+                explanation: "Correto. É autorizada a participação em microempresa agrícola ou agroturística em município sede ou limítrofe, composta exclusivamente por segurados especiais.",
+                full: "Lei 8.213/91, Art. 11, § 12: A participação do segurado especial em sociedade empresária [...] de objeto ou âmbito agrícola [...] não o exclui de tal categoria previdenciária, desde que [...] sedie-se no mesmo Município ou em Município limítrofe..."
+            },
+
+            // TOPIC 8: Servidores Públicos de Cargo Efetivo (Art. 12)
+            {
+                id: 68,
+                topic: "Segurados Obrigatórios",
+                difficulty: "Média",
+                q: "O servidor civil ocupante de cargo efetivo amparado por Regime Próprio de Previdência Social (RPPS) é considerado segurado obrigatório residual do RGPS.",
+                a: false,
+                explanation: "Incorreto. Servidores estatutários de cargo efetivo com regime próprio são explicitamente excluídos do RGPS.",
+                full: "Lei 8.213/91, Art. 12: O servidor civil ocupante de cargo efetivo ou o militar [...] são excluídos do Regime Geral de Previdência Social consubstanciado nesta Lei, desde que amparados por regime próprio de previdência social."
+            },
+            {
+                id: 69,
+                topic: "Segurados Obrigatórios",
+                difficulty: "Difícil",
+                q: "Se um servidor público de cargo efetivo, vinculado a RPPS, vier a exercer de forma concomitante outra atividade econômica privada regida pelo RGPS, ele será segurado obrigatório do RGPS apenas em relação a esta última.",
+                a: true,
+                explanation: "Correto. A concomitância do serviço público e da atividade privada gera a obrigatoriedade de filiação paralela nos respectivos regimes.",
+                full: "Lei 8.213/91, Art. 12, § 1º: Caso o servidor ou o militar venham a exercer, concomitantemente, uma ou mais atividades abrangidas pelo Regime Geral de Previdência Social, tornar-se-ão segurados obrigatórios em relação a essas atividades."
+            },
+
+            // TOPIC 9: Segurado Facultativo (Art. 13)
+            {
+                id: 70,
+                topic: "Segurados Obrigatórios",
+                difficulty: "Difícil",
+                q: "Nos exatos termos do texto da Lei 8.213/91, é segurado facultativo o maior de quatorze anos que se filiar ao RGPS, mediante contribuição, desde que não exerça atividade que o enquadre como segurado obrigatório.",
+                a: true,
+                explanation: "Correto. Embora haja debates constitucionais sobre o limite de dezesseis anos devido ao trabalho, o texto literal do Artigo 13 estabelece expressamente a idade de quatorze anos para a filiação facultativa.",
+                full: "Lei 8.213/91, Art. 13: É segurado facultativo o maior de 14 (quatorze) anos que se filiar ao Regime Geral de Previdência Social, mediante contribuição, desde que não incluído nas disposições do art. 11."
+            },
+
+            // TOPIC 10: Definição de Empresa (Art. 14)
+            {
+                id: 71,
+                topic: "Segurados Obrigatórios",
+                difficulty: "Média",
+                q: "Para fins de incidência previdenciária, equiparam-se à empresa as repartições consulares de carreira estrangeiras e as missões diplomáticas sediadas no Brasil.",
+                a: true,
+                explanation: "Correto. A lei prevê a equiparação das missões consulares e diplomáticas à condição de empresa para fins de obrigações de custeio.",
+                full: "Lei 8.213/91, Art. 14, Parágrafo único: Equiparam-se a empresa [...] a missão diplomática e a repartição consular de carreira estrangeiras."
+            },
+
+            // TOPIC 11: Manutenção da Qualidade de Segurado (Art. 15)
+            {
+                id: 72,
+                topic: "Qualidade de Segurado",
+                difficulty: "Difícil",
+                q: "O segurado em gozo de benefício previdenciário, inclusive o de auxílio-acidente, mantém a qualidade de segurado sem limite de prazo.",
+                a: false,
+                explanation: "Incorreto. Após a publicação da Lei 13.846/2019, o auxílio-acidente foi expressamente excluído do rol de benefícios que geram manutenção ilimitada da qualidade de segurado.",
+                full: "Lei 8.213/91, Art. 15, I: Mantém a qualidade de segurado, independentemente de contribuições: I - sem limite de prazo, quem está em gozo de benefício, exceto do auxílio-acidente;"
+            },
+            {
+                id: 73,
+                topic: "Qualidade de Segurado",
+                difficulty: "Fácil",
+                q: "O trabalhador que deixar de exercer atividade remunerada abrangida pelo RGPS conserva a qualidade de segurado por até 12 meses após a cessação das contribuições.",
+                a: true,
+                explanation: "Correto. Trata-se do período de graça padrão estabelecido para o segurado obrigatório que cessa as contribuições ao sistema.",
+                full: "Lei 8.213/91, Art. 15, II: até 12 (doze) meses após a cessação das contribuições, o segurado que deixar de exercer atividade remunerada..."
+            },
+            {
+                id: 74,
+                topic: "Qualidade de Segurado",
+                difficulty: "Média",
+                q: "O período de graça assegurado ao segurado que foi acometido de doença de segregação compulsória é de até 12 meses após a cessação da referida segregação.",
+                a: true,
+                explanation: "Correto. O artigo 15, III, estabelece o período de graça de 12 meses específico para essa circunstância de isolamento compulsório.",
+                full: "Lei 8.213/91, Art. 15, III: até 12 (doze) meses após cessar a segregação, o segurado acometido de doença de segregação compulsória;"
+            },
+            {
+                id: 75,
+                topic: "Qualidade de Segurado",
+                difficulty: "Média",
+                q: "O segurado retido ou recluso conserva a sua qualidade de segurado por até 12 meses após o seu livramento.",
+                a: true,
+                explanation: "Correto. É o período de graça garantido ao segurado egresso do sistema prisional.",
+                full: "Lei 8.213/91, Art. 15, IV: até 12 (doze) meses após o livramento, o segurado retido ou recluso;"
+            },
+            {
+                id: 76,
+                topic: "Qualidade de Segurado",
+                difficulty: "Difícil",
+                q: "O segurado incorporado às Forças Armadas para prestar serviço militar conserva a sua qualidade de segurado por até seis meses após o seu licenciamento.",
+                a: false,
+                explanation: "Incorreto. O prazo de manutenção da qualidade de segurado após o licenciamento do serviço militar obrigatório é de apenas 3 meses.",
+                full: "Lei 8.213/91, Art. 15, V: até 3 (três) meses após o licenciamento, o segurado incorporado às Forças Armadas para prestar serviço militar;"
+            },
+            {
+                id: 77,
+                topic: "Qualidade de Segurado",
+                difficulty: "Fácil",
+                q: "O segurado facultativo mantém a qualidade de segurado, independentemente do recolhimento de contribuições, por até 6 meses após a cessação dos pagamentos.",
+                a: true,
+                explanation: "Correto. O período de graça para o segurado facultativo é menor, fixado em 6 meses pelo artigo 15, VI.",
+                full: "Lei 8.213/91, Art. 15, VI: até 6 (seis) meses após a cessação das contribuições, o segurado facultativo."
+            },
+            {
+                id: 78,
+                topic: "Qualidade de Segurado",
+                difficulty: "Difícil",
+                q: "O prazo de doze meses de período de graça do segurado que cessa atividade remunerada será prorrogado para até 24 meses caso comprove que já verteu mais de 120 contribuições sem interrupção.",
+                a: true,
+                explanation: "Correto. É o chamado período de graça ampliado por histórico de contribuição.",
+                full: "Lei 8.213/91, Art. 15, § 1º: O prazo do inciso II será prorrogado para até 24 (vinte e quatro) meses se o segurado já tiver pago mais de 120 (cento e vinte) contribuições mensais sem interrupção..."
+            },
+            {
+                id: 79,
+                topic: "Qualidade de Segurado",
+                difficulty: "Difícil",
+                q: "Para o segurado desempregado comprovar essa situação e ter direito ao acréscimo de 12 meses no período de graça, é suficiente a apresentação de duas testemunhas perante a agência da previdência.",
+                a: false,
+                explanation: "Incorreto. O acréscimo decorrente do desemprego exige comprovação por meio de registro no órgão próprio do Ministério do Trabalho e da Previdência Social.",
+                full: "Lei 8.213/91, Art. 15, § 2º: Os prazos do inciso II ou do § 1° serão acrescidos de 12 (doze) meses para o segurado desempregado, desde que comprovada essa situação pelo registro no órgão próprio..."
+            },
+            {
+                id: 80,
+                topic: "Qualidade de Segurado",
+                difficulty: "Média",
+                q: "Durante os prazos de manutenção da qualidade de segurado (períodos de graça), o segurado perde os seus direitos de recebimento de novos benefícios previdenciários.",
+                a: false,
+                explanation: "Incorreto. O segurado sob período de graça preserva integralmente todo o feixe de direitos inerentes à proteção previdenciária.",
+                full: "Lei 8.213/91, Art. 15, § 3º: Durante os prazos deste artigo, o segurado conserva todos os seus direitos perante a Previdência Social."
+            },
+            {
+                id: 81,
+                topic: "Qualidade de Segurado",
+                difficulty: "Máxima",
+                q: "A perda efetiva da qualidade de segurado ocorre no primeiro dia útil subsequente ao encerramento do prazo do período de graça.",
+                a: false,
+                explanation: "Incorreto. A perda ocorre no dia seguinte ao término do prazo de recolhimento fixado no Plano de Custeio para o mês posterior ao fim dos prazos do período de graça.",
+                full: "Lei 8.213/91, Art. 15, § 4º: A perda da qualidade de segurado ocorrerá no dia seguinte ao do término do prazo fixado no Plano de Custeio da Seguridade Social para recolhimento da contribuição referente ao mês imediatamente posterior ao do final dos prazos fixados..."
+            },
+
+            // TOPIC 12: Dependentes (Art. 16)
+            {
+                id: 82,
+                topic: "Dependentes",
+                difficulty: "Fácil",
+                q: "São dependentes de primeira classe (Classe I) do segurado no RGPS: o cônjuge, a companheira, o companheiro e o filho não emancipado, de qualquer condição, menor de 21 anos ou inválido.",
+                a: true,
+                explanation: "Correto. O artigo 16, I, fixa com clareza o rol de dependentes que gozam de presunção de dependência econômica na primeira classe.",
+                full: "Lei 8.213/91, Art. 16, I: o cônjuge, a companheira, o companheiro e o filho não emancipado, de qualquer condição, menor de 21 (vinte e um) anos ou inválido ou que tenha deficiência intelectual ou mental ou deficiência grave;"
+            },
+            {
+                id: 83,
+                topic: "Dependentes",
+                difficulty: "Média",
+                q: "Os pais do segurado são considerados dependentes da Classe II, concorrendo em igualdade de condições com os filhos de Classe I.",
+                a: false,
+                explanation: "Incorreto. Embora sejam de fato de Classe II, a existência de dependentes de qualquer classe exclui o direito das classes subsequentes.",
+                full: "Lei 8.213/91, Art. 16, § 1º: A existência de dependente de qualquer das classes deste artigo exclui do direito às prestações os das classes seguintes."
+            },
+            {
+                id: 84,
+                topic: "Dependentes",
+                difficulty: "Média",
+                q: "O irmão não emancipado, de qualquer condição, menor de 21 anos ou inválido, é dependente de Classe III no RGPS.",
+                a: true,
+                explanation: "Correto. Os irmãos representam a terceira e última classe de dependentes descrita na lei de benefícios.",
+                full: "Lei 8.213/91, Art. 16, III: o irmão não emancipado, de qualquer condição, menor de 21 (vinte e um) anos ou inválido ou que tenha deficiência intelectual ou mental ou deficiência grave;"
+            },
+            {
+                id: 85,
+                topic: "Dependentes",
+                difficulty: "Difícil",
+                q: "O enteado, o menor sob tutela e o menor sob guarda judicial equiparam-se a filho, exigindo-se declaração do segurado e prova de que não possuem recursos suficientes para o próprio sustento.",
+                a: true,
+                explanation: "Correto. Conforme redação atualizada da Lei 15.108 de 2025 e das ADIs 4.878 e 5.083, o menor sob guarda também se equipara a filho no RGPS.",
+                full: "Lei 8.213/91, Art. 16, § 2º: O enteado, o menor sob tutela e o menor sob guarda judicial equiparam-se a filho, mediante declaração do segurado e desde que não possuam condições suficientes para o próprio sustento e educação. (Redação da Lei nº 15.108 de 2025)."
+            },
+            {
+                id: 86,
+                topic: "Dependentes",
+                difficulty: "Média",
+                q: "Para fins previdenciários, considera-se companheira ou companheiro a pessoa que, mesmo sendo casada civilmente com outrem, mantenha relacionamento simultâneo duradouro com o segurado.",
+                a: false,
+                explanation: "Incorreto. A união estável pressupõe a ausência de impedimentos matrimoniais (não ser casado ou estar separado de fato/judicialmente).",
+                full: "Lei 8.213/91, Art. 16, § 3º: Considera-se companheira ou companheiro a pessoa que, sem ser casada, mantém união estável com o segurado ou com a segurada..."
+            },
+            {
+                id: 87,
+                topic: "Dependentes",
+                difficulty: "Fácil",
+                q: "A dependência econômica dos dependentes de Classe I (cônjuge e filhos) deve ser comprovada documentalmente a cada ano perante a Previdência Social.",
+                a: false,
+                explanation: "Incorreto. A dependência econômica dos beneficiários de Classe I é presumida por lei, dispensando dilação probatória de necessidade financeira.",
+                full: "Lei 8.213/91, Art. 16, § 4º: A dependência econômica das pessoas indicadas no inciso I é presumida e a das demais deve ser comprovada."
+            },
+            {
+                id: 88,
+                topic: "Dependentes",
+                difficulty: "Difícil",
+                q: "As provas de união estável e de dependência econômica admitem a produção de prova puramente testemunhal, bastando para tanto a oitiva de parentes próximos.",
+                a: false,
+                explanation: "Incorreto. A lei veda terminantemente a prova exclusivamente testemunhal para fins de união estável ou dependência, exigindo início de prova material contemporânea.",
+                full: "Lei 8.213/91, Art. 16, § 5º: As provas de união estável e de dependência econômica exigem início de prova material contemporânea dos fatos [...] não admitida a prova exclusivamente testemunhal..."
+            },
+            {
+                id: 89,
+                topic: "Dependentes",
+                difficulty: "Máxima",
+                q: "O início de prova material de união estável e de dependência econômica deve ser produzido em período não superior a 24 meses anterior à data do óbito ou da prisão do segurado.",
+                a: true,
+                explanation: "Correto. Trata-se de um marco temporal rígido inserido pela Lei 13.846/2019 para evitar fraudes em benefícios.",
+                full: "Lei 8.213/91, Art. 16, § 5º: [...] produzido em período não superior a 24 (vinte e quatro) meses anterior à data do óbito ou do recolhimento à prisão do segurado..."
+            },
+            {
+                id: 90,
+                topic: "Dependentes",
+                difficulty: "Difícil",
+                q: "Para fins de concessão de pensão por morte temporária de cônjuge, exige-se início de prova material que comprove união estável por pelo menos 2 anos antes do óbito.",
+                a: true,
+                explanation: "Correto. O parágrafo 6º do art. 16 exige prova documental da coabitação estável por período mínimo de dois anos antes do passamento.",
+                full: "Lei 8.213/91, Art. 16, § 6º: [...] deverá ser apresentado, ainda, início de prova material que comprove união estável por pelo menos 2 (dois) anos antes do óbito do segurado."
+            },
+            {
+                id: 91,
+                topic: "Dependentes",
+                difficulty: "Difícil",
+                q: "Será excluído em definitivo da condição de dependente aquele que tiver sido condenado criminalmente por homicídio culposo cometido contra a pessoa do segurado.",
+                a: false,
+                explanation: "Incorreto. A exclusão de dependente em decorrência de homicídio contra o segurado está restrita exclusivamente ao crime praticado sob a forma DOLOSA.",
+                full: "Lei 8.213/91, Art. 16, § 7º: Será excluído definitivamente da condição de dependente quem tiver sido condenado criminalmente [...] como autor, coautor ou partícipe de homicídio doloso, ou de tentativa desse crime..."
+            },
+            {
+                id: 92,
+                topic: "Dependentes",
+                difficulty: "Média",
+                q: "A exclusão de dependente por condenação criminal por homicídio doloso contra o segurado não se aplica se o dependente for absolutamente incapaz ou inimputável.",
+                a: true,
+                explanation: "Correto. A lei ressalva expressamente os inimputáveis e os incapazes absolutos dos efeitos de exclusão por atos ilícitos.",
+                full: "Lei 8.213/91, Art. 16, § 7º: [...] cometido contra a pessoa do segurado, ressalvados os absolutamente incapazes e os inimputáveis."
+            },
+
+            // TOPIC 13: Inscrições (Art. 17)
+            {
+                id: 93,
+                topic: "Inscrições",
+                difficulty: "Média",
+                q: "Incumbe ao segurado, no momento de sua inscrição, promover a prévia inscrição individualizada de todos os seus possíveis dependentes sob pena de multa de custeio.",
+                a: false,
+                explanation: "Incorreto. Incumbe ao próprio dependente promover sua respectiva inscrição no momento do requerimento do benefício que pretende usufruir.",
+                full: "Lei 8.213/91, Art. 17, § 1º: Incumbe ao dependente promover a sua inscrição quando do requerimento do benefício a que estiver habilitado."
+            },
+            {
+                id: 94,
+                topic: "Inscrições",
+                difficulty: "Difícil",
+                q: "A inscrição do segurado especial deve conter, além das informações de ordem pessoal, a identificação exata da propriedade onde exerce suas atividades rurais.",
+                a: true,
+                explanation: "Correto. É fundamental a associação territorial do segurado especial para fiscalização do cumprimento dos requisitos do regime familiar.",
+                full: "Lei 8.213/91, Art. 17, § 4º: A inscrição do segurado especial será feita de forma a vinculá-lo ao respectivo grupo familiar e conterá [...] a identificação da propriedade em que desenvolve a atividade e a que título..."
+            },
+            {
+                id: 95,
+                topic: "Inscrições",
+                difficulty: "Difícil",
+                q: "O segurado especial que desenvolve atividades em imóvel rural do qual não seja proprietário (parceiro ou arrendatário) deve declarar à Previdência, no ato da inscrição, o nome do proprietário ou parceiro outorgante.",
+                a: true,
+                explanation: "Correto. Essa declaração nominal é exigida pelo parágrafo 5º do art. 17 para cruzamento cadastral.",
+                full: "Lei 8.213/91, Art. 17, § 5º: O segurado especial integrante de grupo familiar que não seja proprietário [...] deverá informar, no ato da inscrição, conforme o caso, o nome do parceiro ou meeiro outorgante, arrendador, comodante ou assemelhado."
+            },
+            {
+                id: 96,
+                topic: "Inscrições",
+                difficulty: "Máxima",
+                q: "Admite-se de forma pacífica no RGPS a inscrição 'post mortem' de segurados contribuintes individuais e segurados facultativos, visando à proteção de seus dependentes.",
+                a: false,
+                explanation: "Incorreto. A lei veda taxativamente a formalização da inscrição após o óbito (post mortem) para contribuintes individuais e facultativos.",
+                full: "Lei 8.213/91, Art. 17, § 7º: Não será admitida a inscrição post mortem de segurado contribuinte individual e de segurado facultativo."
+            },
+
+            // EXPANDED REINFORCEMENTS (100-Question Target Completion)
+            {
+                id: 97,
+                topic: "Princípios e Finalidade",
+                difficulty: "Fácil",
+                q: "A proteção previdenciária decorre da solidariedade social e baseia-se exclusivamente no regime financeiro de capitalização de ativos individuais.",
+                a: false,
+                explanation: "Incorreto. A previdência funciona sob regime contributivo repartido, inspirado no pacto de solidariedade intergeracional.",
+                full: "Lei 8.213/91, Art. 1º: A Previdência Social, mediante contribuição, tem por fim assegurar..."
+            },
+            {
+                id: 98,
+                topic: "Dependentes",
+                difficulty: "Média",
+                q: "O menor sob guarda judicial não se equipara ao filho no RGPS, tendo em vista o julgamento das ADIs do STF sobre dependência econômica.",
+                a: false,
+                explanation: "Incorreto. A Lei 15.108 de 2025 adequou o texto da Lei 8.213/91 expressando de forma nítida que o menor sob guarda equipara-se a filho, em harmonia com o STF.",
+                full: "Lei 8.213/91, Art. 16, § 2º: O enteado, o menor sob tutela e o menor sob guarda judicial equiparam-se a filho... (redação da Lei nº 15.108 de 2025)."
+            },
+            {
+                id: 99,
+                topic: "Segurado Especial",
+                difficulty: "Difícil",
+                q: "O limite espacial para participação do segurado especial em sociedade limitada agrícola é que esta se sedie no município do segurado ou em município vizinho limitrófe.",
+                a: true,
+                explanation: "Correto. O art. 11, § 12 impõe exatamente esta limitação geográfica para evitar a descaracterização do regime familiar do segurado especial.",
+                full: "Lei 8.213/91, Art. 11, § 12: [...] a pessoa jurídica componha-se apenas de segurados de igual natureza e sedie-se no mesmo Município ou em Município limítrofe..."
+            },
+            {
+                id: 100,
+                topic: "Qualidade de Segurado",
+                difficulty: "Média",
+                q: "A prorrogação por 12 meses decorrente do desemprego (§ 2º, Art. 15) não se acumula com a prorrogação decorrente do pagamento de mais de 120 contribuições (§ 1º, Art. 15).",
+                a: false,
+                explanation: "Incorreto. As extensões de período de graça são de fato cumulativas, podendo o segurado atingir até 36 meses de período de manutenção da qualidade.",
+                full: "Lei 8.213/91, Art. 15, § 2º: Os prazos do inciso II ou do § 1° serão acrescidos de 12 (doze) meses para o segurado desempregado..."
+            },
+            
+            // --- INÍCIO: QUESTÕES DO DECRETO 3048/1999 (REGULAMENTO DA PREVIDÊNCIA SOCIAL) ---
+            {
+                id: 101,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Média",
+                q: "Segundo o Regulamento da Previdência Social, o trabalhador contratado de forma intermitente perde o vínculo com o Regime Geral de Previdência Social caso não preste serviços durante todo o mês civil.",
+                a: false,
+                explanation: "Incorreto. O trabalhador intermitente é expressamente considerado segurado obrigatório na categoria de empregado, mantendo seu status no RGPS e submetendo-se às regras normais de manutenção da qualidade de segurado.",
+                full: "Decreto 3048/99, Art. 9º, § 15. Considera-se segurado empregado o trabalhador contratado para trabalho intermitente."
+            },
+            {
+                id: 102,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Média",
+                q: "A idade mínima exigida pelo Regulamento da Previdência Social para a inscrição válida na categoria de segurado facultativo é de 16 anos.",
+                a: true,
+                explanation: "Correto. O RPS (Decreto 3048/99) se adequou inteiramente ao texto constitucional e firmou a idade mínima em 16 anos, sobrepondo-se à redação originária e defasada da Lei 8.213 que citava 14 anos.",
+                full: "Decreto 3048/99, Art. 11, § 3º: É vedada a filiação ao Regime Geral de Previdência Social, na qualidade de segurado facultativo, de pessoa menor de dezesseis anos."
+            },
+            {
+                id: 103,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Difícil",
+                q: "A inscrição do trabalhador avulso perante a Previdência Social é um encargo que cabe exclusivamente ao próprio trabalhador realizar por meio do sistema Meu INSS.",
+                a: false,
+                explanation: "Incorreto. A responsabilidade por formalizar a inscrição do trabalhador avulso é do respectivo sindicato da categoria ou do Órgão Gestor de Mão de Obra (OGMO).",
+                full: "Decreto 3048/99, Art. 18, I, 'e': A inscrição é efetuada: para o trabalhador avulso, pelo sindicato da categoria ou, no caso de trabalhador avulso portuário, pelo órgão gestor de mão de obra..."
+            },
+            {
+                id: 104,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Difícil",
+                q: "O pagamento do auxílio-acidente será devido a partir do dia seguinte ao da cessação do auxílio por incapacidade temporária (antigo auxílio-doença).",
+                a: true,
+                explanation: "Correto. O auxílio-acidente possui estrita natureza de indenização e se torna devido imediatamente e de forma automática após a consolidação das lesões e alta médica do benefício de incapacidade.",
+                full: "Decreto 3048/99, Art. 104, § 2º: O auxílio-acidente será devido a partir do dia seguinte ao da cessação do auxílio por incapacidade temporária, independentemente de qualquer remuneração..."
+            },
+            {
+                id: 105,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Fácil",
+                q: "O período de carência para o recebimento do salário-maternidade para a segurada empregada, a trabalhadora avulsa e a empregada doméstica é de 10 (dez) meses de contribuição.",
+                a: false,
+                explanation: "Incorreto. Para as categorias de empregada, avulsa e doméstica, o salário-maternidade independe de carência. O rigor de 10 meses aplica-se apenas à contribuinte individual e à segurada especial.",
+                full: "Decreto 3048/99, Art. 30, II: Independe de carência a concessão das seguintes prestações: salário-maternidade, para as seguradas empregada, trabalhadora avulsa e empregada doméstica."
+            },
+            {
+                id: 106,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Difícil",
+                q: "O tempo de percepção de auxílio por incapacidade temporária (auxílio-doença) será devidamente computado como carência caso seja intercalado com períodos de atividade ou contribuição efetiva.",
+                a: true,
+                explanation: "Correto. Essa é uma regra pacificada nos tribunais e recentemente incorporada ao Decreto 3048, garantindo a contagem do tempo de afastamento se este estiver \"ensanduichado\" por períodos laborais.",
+                full: "Decreto 3048/99, Art. 27-A: Computa-se para fins de carência o tempo de percepção de auxílio por incapacidade temporária, desde que intercalado com períodos de atividade ou de contribuição."
+            },
+            {
+                id: 107,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Média",
+                q: "O benefício do auxílio-reclusão é devido aos dependentes de todos os segurados recolhidos à prisão, em regimes fechado ou semiaberto, contanto que se enquadrem no conceito de baixa renda.",
+                a: false,
+                explanation: "Incorreto. A legislação compilada em vigor prevê estritamente que o auxílio-reclusão é concedido SOMENTE se o segurado de baixa renda estiver cumprindo pena exclusivamente no regime FECHADO.",
+                full: "Decreto 3048/99, Art. 116. O auxílio-reclusão será devido, nas condições da pensão por morte, aos dependentes do segurado de baixa renda recolhido à prisão em regime fechado..."
+            },
+            {
+                id: 108,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Média",
+                q: "O segurado em gozo de aposentadoria por incapacidade permanente, salvo as isenções legais por idade avançada, fica obrigado, a qualquer tempo, a se submeter a exame médico-pericial do INSS.",
+                a: true,
+                explanation: "Correto. O aposentado por invalidez precisa realizar a revisão periódica de sua condição de incapacidade (operações de 'pente-fino'), sob pena de ter o benefício bloqueado e suspenso.",
+                full: "Decreto 3048/99, Art. 46. O segurado aposentado por incapacidade permanente [...] está obrigado, a qualquer tempo, a submeter-se a exame médico-pericial, sob pena de suspensão do benefício."
+            },
+            {
+                id: 109,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Máxima",
+                q: "A filiação previdenciária do segurado facultativo possui eficácia retroativa, permitindo-lhe recolher os valores atrasados de competências anteriores à sua primeira inscrição formal.",
+                a: false,
+                explanation: "Incorreto. Ao contrário do que ocorre muitas vezes no trabalho obrigatório, a filiação do facultativo jamais retroage; ela depende intrinsecamente de inscrição formal seguida do pagamento da primeira parcela em dia.",
+                full: "Decreto 3048/99, Art. 20, § 3º: O recolhimento de contribuições, por si só, não resulta na filiação do segurado facultativo, sendo exigida a inscrição formalizada e o pagamento tempestivo da primeira contribuição."
+            },
+            {
+                id: 110,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Fácil",
+                q: "A pensão por morte, havendo mais de um pensionista habilitado de uma mesma classe, será rateada entre todos eles em partes idênticas e iguais.",
+                a: true,
+                explanation: "Correto. A divisão do montante da pensão por morte (cota global e cotas individuais) deve ser distribuída igualitariamente entre todos os co-pensionistas da mesma classe ativada.",
+                full: "Decreto 3048/99, Art. 105. A pensão por morte será rateada entre todos os dependentes em partes iguais."
+            },
+            {
+                id: 111,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Difícil",
+                q: "O segurado especial que passar a auferir renda como vereador do Município no qual exerce sua atividade rural terá, obrigatoriamente, sua condição de segurado especial descaracterizada e revogada.",
+                a: false,
+                explanation: "Incorreto. O Regulamento abre uma das poucas exceções expressas a essa regra de acumulação, garantindo o exercício do mandato na câmara de vereadores da mesma localidade da sua roça/pesca.",
+                full: "Decreto 3048/99, Art. 9º, § 8º, V, 'a': Não descaracteriza a condição de segurado especial a percepção de rendimentos decorrentes de: exercício de mandato de vereador do Município em que desenvolve a atividade rural."
+            },
+            {
+                id: 112,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Média",
+                q: "O valor mensal do auxílio-acidente corresponderá exatamente à metade (50%) do valor do salário de benefício que serviu de base de cálculo para o auxílio por incapacidade temporária originário.",
+                a: true,
+                explanation: "Correto. Sendo uma verba complementar e indenizatória pela perda parcial de capacidade, ele não substitui a renda do trabalho, sendo por isso fixado no percentual de segurança de cinquenta por cento.",
+                full: "Decreto 3048/99, Art. 104, § 1º: O auxílio-acidente mensal corresponderá a cinquenta por cento do salário de benefício que deu origem ao auxílio por incapacidade temporária do segurado..."
+            },
+            {
+                id: 113,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Média",
+                q: "Para a segurada especial que apenas comercializa sua produção rural, sem efetuar recolhimentos de contribuição facultativa, o salário-maternidade pago corresponderá a 1 (um) salário mínimo.",
+                a: true,
+                explanation: "Correto. Aquelas que integram a agricultura familiar em regime de economia primária de subsistência têm piso garantido do mínimo legal.",
+                full: "Decreto 3048/99, Art. 101, § 2º: Para a segurada especial que não contribua facultativamente [...] o valor do salário-maternidade será equivalente a um salário mínimo."
+            },
+            {
+                id: 114,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Média",
+                q: "O enteado e o menor sob guarda ou tutela equiparam-se a filho dependente mediante simples declaração do segurado, sendo dispensada a comprovação da relação de dependência econômica.",
+                a: false,
+                explanation: "Incorreto. O Decreto 3048 é claro ao determinar que, ao contrário do filho natural ou adotivo (presumidos), a equiparação destes outros menores não afasta a obrigação de provar concretamente a dependência econômica.",
+                full: "Decreto 3048/99, Art. 16, § 3º: O enteado e o menor tutelado equiparam-se a filho mediante declaração do segurado e desde que comprovada a dependência econômica..."
+            },
+            {
+                id: 115,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Difícil",
+                q: "A demonstração da união estável para a percepção do benefício de pensão por morte admite prova exclusivamente testemunhal nos casos em que o casal coabitar de maneira notória por mais de 5 anos.",
+                a: false,
+                explanation: "Incorreto. Tanto a Lei de Custeios e Benefícios quanto o Regulamento (Decreto 3048) proíbem expressamente o reconhecimento pautado em prova oral (testemunhal) isolada; há obrigação sumária de apresentar início de prova material.",
+                full: "Decreto 3048/99, Art. 22, § 3º: A comprovação da união estável e da dependência econômica exige início de prova material contemporânea dos fatos, [...] não admitida a prova exclusivamente testemunhal..."
+            },
+
+            // --- SEÇÃO DE 50 NOVAS QUESTÕES DO DECRETO 3048 COMPILADO (IDs 116 a 165) ---
+            {
+                id: 116,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Média",
+                q: "O médico residente, contratado em conformidade com a legislação federal específica, é enquadrado no RGPS obrigatoriamente na categoria de segurado contribuinte individual.",
+                a: true,
+                explanation: "Correto. Os médicos residentes de programas oficiais de pós-graduação médica são expressamente inseridos na qualidade de segurado contribuinte individual.",
+                full: "Decreto 3048/99, Art. 9º, V, 'p': como contribuinte individual: o médico-residente contratado na forma da Lei nº 6.932, de 1981."
+            },
+            {
+                id: 117,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Fácil",
+                q: "As informações constantes no Cadastro Nacional de Informações Sociais (CNIS) servem de comprovação plena de tempo de contribuição, filiação e salários-de-contribuição para o INSS.",
+                a: true,
+                explanation: "Correto. O CNIS é o banco de dados oficial que detém a presunção relativa de veracidade e serve de prova em processos administrativos.",
+                full: "Decreto 3048/99, Art. 19: Os dados constantes do Cadastro Nacional de Informações Sociais - CNIS relativos a vínculos, remunerações e contribuições valem como prova de filiação..."
+            },
+            {
+                id: 118,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Média",
+                q: "As parcelas pagas ao segurado empregado a título de aviso prévio indenizado integram integralmente o salário de contribuição para fins previdenciários.",
+                a: false,
+                explanation: "Incorreto. O aviso prévio indenizado possui nítida natureza de compensação pecuniária indenizatória, estando expressamente excluído da base de incidência previdenciária.",
+                full: "Decreto 3048/99, Art. 214, § 9º, alínea 'f': Não integram o salário-de-contribuição [...] as parcelas pagas a título de aviso prévio indenizado..."
+            },
+            {
+                id: 119,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Fácil",
+                q: "A concessão do benefício de auxílio-acidente exige o cumprimento de uma carência mínima de 12 contribuições mensais pelo segurado.",
+                a: false,
+                explanation: "Incorreto. O auxílio-acidente está expressamente incluído na lista de prestações que independem de carência (carência zero).",
+                full: "Decreto 3048/99, Art. 30, I, 'd': Independe de carência a concessão das seguintes prestações: [...] auxílio-acidente de qualquer natureza."
+            },
+            {
+                id: 120,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Média",
+                q: "A aposentadoria por incapacidade permanente dispensa o cumprimento de carência quando for decorrente de acidente de qualquer natureza ou causa.",
+                a: true,
+                explanation: "Correto. Os acidentes e as doenças profissionais/do trabalho afastam a exigência ordinária de 12 meses de carência para invalidez.",
+                full: "Decreto 3048/99, Art. 30, I, 'a': Independe de carência a concessão das seguintes prestações: aposentadoria por incapacidade permanente nos casos de acidente de qualquer natureza..."
+            },
+            {
+                id: 121,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Difícil",
+                q: "O salário de benefício pós-Reforma da Previdência é calculado com base na média aritmética simples de 100% dos salários de contribuição de todo o período contributivo desde julho de 1994.",
+                a: true,
+                explanation: "Correto. O Regulamento consolidou a extinção do descarte automático dos 20% menores salários-de-contribuição adotando a média integral (100%).",
+                full: "Decreto 3048/99, Art. 32: O salário de benefício consiste na média aritmética simples dos salários de contribuição [...] correspondentes a cem por cento do período contributivo, desde a competência julho de 1994..."
+            },
+            {
+                id: 122,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Média",
+                q: "O acréscimo de 25% destinado a quem necessita de assistência permanente de terceiros aplica-se indistintamente a qualquer modalidade de aposentadoria do RGPS.",
+                a: false,
+                explanation: "Incorreto. A lei de benefícios e o Decreto limitam a concessão do acréscimo de 25% exclusivamente ao aposentado por incapacidade permanente (antiga aposentadoria por invalidez).",
+                full: "Decreto 3048/99, Art. 45. O valor da aposentadoria por incapacidade permanente do segurado que necessitar da assistência permanente de outra pessoa será acrescido de vinte e cinco por cento..."
+            },
+            {
+                id: 123,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Difícil",
+                q: "O acréscimo de vinte e cinco por cento sobre o valor da aposentadoria por incapacidade permanente é devido mesmo que o montante final ultrapasse o limite máximo (teto) do salário de benefício.",
+                a: true,
+                explanation: "Correto. O adicional de grande invalidez constitui uma das poucas exceções autorizadas a extrapolar o teto do RGPS.",
+                full: "Decreto 3048/99, Art. 45, Parágrafo único: O acréscimo de que trata este artigo: [...] b) será pago ainda que o valor da aposentadoria atinja o limite máximo do valor dos benefícios do Regime Geral..."
+            },
+            {
+                id: 124,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Média",
+                q: "A idade mínima para concessão de aposentadoria por idade ao trabalhador rural é reduzida em 5 anos para ambos os sexos, fixando-se em 60 anos para homens e 55 anos para mulheres.",
+                a: true,
+                explanation: "Correto. O trabalhador e a trabalhadora rurais em regime de economia familiar usufruem do direito de redução de 5 anos no requisito de idade.",
+                full: "Decreto 3048/99, Art. 51, § 1º: Os limites de idade de que trata o caput são reduzidos para sessenta anos, se homem, e cinquenta e cinco anos, se mulher, para os trabalhadores rurais..."
+            },
+            {
+                id: 125,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Difícil",
+                q: "A concessão da aposentadoria especial pressupõe a exposição a agentes nocivos químicos, físicos ou biológicos de forma estritamente permanente, não eventual nem intermitente.",
+                a: true,
+                explanation: "Correto. A habitualidade e a permanência da exposição ao agente nocivo são condições cumulativas obrigatórias descritas na regulamentação.",
+                full: "Decreto 3048/99, Art. 64. A aposentadoria especial, uma vez cumprido o período de carência, será devida ao segurado que comprovar o exercício de atividades com exposição a agentes nocivos [...] em caráter permanente..."
+            },
+            {
+                id: 126,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Difícil",
+                q: "O Perfil Profissiográfico Previdenciário (PPP) deve ser emitido pelo empregador com amparo nas conclusões do Laudo Técnico de Condições Ambientais do Trabalho (LTCAT).",
+                a: true,
+                explanation: "Correto. O LTCAT é a peça técnica produzida por médico ou engenheiro que obrigatoriamente subsidia o preenchimento do formulário do PPP.",
+                full: "Decreto 3048/99, Art. 68, § 3º: A comprovação da efetiva exposição do segurado aos agentes nocivos será feita mediante formulário emitido pela empresa [...] com base em laudo técnico de condições ambientais..."
+            },
+            {
+                id: 127,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Fácil",
+                q: "O benefício de auxílio por incapacidade temporária (antigo auxílio-doença) é devido ao segurado empregado a contar da data de início da incapacidade em qualquer hipótese.",
+                a: false,
+                explanation: "Incorreto. Para o segurado empregado típico, o benefício é devido apenas a contar do décimo sexto dia de afastamento (os primeiros 15 dias são pagos pela empresa).",
+                full: "Decreto 3048/99, Art. 72: O auxílio por incapacidade temporária será devido: I - ao segurado empregado [...] a contar do décimo sexto dia do afastamento da atividade..."
+            },
+            {
+                id: 128,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Média",
+                q: "Durante os primeiros 15 dias consecutivos de afastamento por motivo de doença comum, cabe à empresa pagar ao segurado empregado a sua remuneração integral.",
+                a: true,
+                explanation: "Correto. O ônus financeiro dos primeiros quinze dias de interrupção contratual é assumido de forma exclusiva pelo empregador patronal.",
+                full: "Decreto 3048/99, Art. 75. Durante os primeiros quinze dias consecutivos de afastamento da atividade por motivo de incapacidade temporária, cabe à empresa pagar ao segurado empregado o seu salário..."
+            },
+            {
+                id: 129,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Média",
+                q: "O pagamento do salário-família está condicionado à apresentação anual de atestado de vacinação obrigatória e comprovação semestral de frequência escolar do filho.",
+                a: true,
+                explanation: "Correto. Essas são obrigações de natureza assessória vinculantes instituídas para incentivar a proteção da infância.",
+                full: "Decreto 3048/99, Art. 84. O pagamento do salário-família será condicionado à apresentação do atestado de vacinação obrigatória [...] e de comprovação de frequência à escola..."
+            },
+            {
+                id: 130,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Difícil",
+                q: "No mês de admissão do segurado empregado, o valor da cota do salário-família é devido em seu montante integral, sem qualquer proporcionalidade aos dias trabalhados.",
+                a: false,
+                explanation: "Incorreto. Nos meses de admissão e demissão do empregado, a cota de salário-família deve ser fracionada de forma proporcional aos dias efetivos de vigência laboral.",
+                full: "Decreto 3048/99, Art. 86. O salário-família correspondente ao mês de admissão ou de demissão do empregado será pago proporcionalmente ao número de dias trabalhados..."
+            },
+            {
+                id: 131,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Difícil",
+                q: "O salário-maternidade devido à trabalhadora avulsa consiste em uma renda mensal idêntica ao valor de sua última remuneração integral equivalente a um mês de trabalho.",
+                a: true,
+                explanation: "Correto. A legislação protege a trabalhadora avulsa garantindo-lhe rendimento igual ao valor correspondente ao seu último salário mensal em atividade.",
+                full: "Decreto 3048/99, Art. 94. O salário-maternidade para a segurada trabalhadora avulsa consiste em uma renda mensal igual a sua remuneração integral equivalente a um mês de trabalho..."
+            },
+            {
+                id: 132,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Média",
+                q: "O segurado em gozo de auxílio-acidente que vier a preencher os requisitos de idade e contribuição poderá acumular este valor com a sua aposentadoria final.",
+                a: false,
+                explanation: "Incorreto. A cumulação de auxílio-acidente e aposentadoria está vedada na lei de benefícios e no regulamento desde 1997, extinguindo-se o auxílio-acidente na data da concessão da aposentadoria.",
+                full: "Decreto 3048/99, Art. 104, § 6º: É vedada a acumulação do auxílio-acidente com qualquer aposentadoria do Regime Geral de Previdência Social."
+            },
+            {
+                id: 133,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Difícil",
+                q: "Se o óbito do segurado ocorrer sem que tenham sido pagas 18 contribuições mensais, a pensão por morte devida ao cônjuge terá duração limite de apenas 4 meses.",
+                a: true,
+                explanation: "Correto. O casamento recente ou histórico exíguo de recolhimentos limita drasticamente o prazo da pensão para o cônjuge a título de carência social.",
+                full: "Decreto 3048/99, Art. 114, I: A pensão por morte terá duração de: I - quatro meses, se o óbito ocorrer sem que o segurado tenha vertido dezoito contribuições mensais..."
+            },
+            {
+                id: 134,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Média",
+                q: "Para que o cônjuge sobrevivente faça jus ao benefício de pensão por morte de natureza vitalícia, exige-se que conte com pelo menos 45 anos de idade na data do falecimento.",
+                a: true,
+                explanation: "Correto. Conforme tabela de faixas etárias ajustada periodicamente pela previdência, a pensão vitalícia exige idade mínima de 45 anos na data do sinistro do segurado.",
+                full: "Decreto 3048/99, Art. 114, V, '6': A pensão por morte terá duração de: [...] vitalícia, se o cônjuge contar com quarenta e cinco anos ou mais de idade."
+            },
+            {
+                id: 135,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Difícil",
+                q: "O critério de baixa renda do segurado preso, para fins de concessão de auxílio-reclusão, é apurado com base na média de seus salários de contribuição apurados nos 12 meses anteriores ao do recolhimento.",
+                a: true,
+                explanation: "Correto. Essa é a base de cálculo de apuração para identificar se os dependentes cumprem os critérios constitucionais de vulnerabilidade econômica.",
+                full: "Decreto 3048/99, Art. 116, § 1º: A aferição da renda mensal bruta do segurado preso [...] para enquadramento como segurado de baixa renda [...] será feita pela média dos salários de contribuição nos doze meses anteriores..."
+            },
+            {
+                id: 136,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Média",
+                q: "O segurado em gozo de benefício por incapacidade temporária que recusar participar do programa de reabilitação profissional do INSS poderá sofrer a suspensão do seu pagamento.",
+                a: true,
+                explanation: "Correto. A participação nos atos periciais e programas reabilitativos instituídos pela previdência é de cumprimento obrigatório pelo segurado.",
+                full: "Decreto 3048/99, Art. 137. O segurado em gozo de auxílio por incapacidade temporária [...] está obrigado, sob pena de suspensão do benefício, a submeter-se ao processo de reabilitação profissional..."
+            },
+            {
+                id: 137,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Difícil",
+                q: "A inscrição de dependente efetuada após a morte do segurado (post mortem) garante o pagamento das parcelas de pensão por morte de forma retroativa à data do óbito em qualquer hipótese.",
+                a: false,
+                explanation: "Incorreto. A retroatividade integral está condicionada ao requerimento formal dentro dos prazos legais do artigo 113. Fora dos prazos, o pagamento ocorre a contar da data de entrada do requerimento.",
+                full: "Decreto 3048/99, Art. 113: A pensão por morte será devida: [...] II - do requerimento, quando requerida após o prazo previsto no inciso anterior..."
+            },
+            {
+                id: 138,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Média",
+                q: "O INSS está autorizado por lei a efetuar descontos mensais sobre o valor dos benefícios para reaver parcelas de benefícios pagos indevidamente ou a maior, com limite mensal de até 30% do benefício.",
+                a: true,
+                explanation: "Correto. O desconto administrativo de boa ou má-fé em manutenção está limitado ao percentual máximo de 30% para preservar a subsistência do segurado.",
+                full: "Decreto 3048/99, Art. 154, § 3º: O INSS poderá descontar mensalmente do valor dos benefícios [...] as parcelas pagas indevidamente ou a maior, [...] não podendo o desconto exceder trinta por cento..."
+            },
+            {
+                id: 139,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Fácil",
+                q: "O prazo para o segurado interpor recurso ordinário junto à Junta de Recursos do CRPS contra decisões administrativas do INSS é de 30 dias.",
+                a: true,
+                explanation: "Correto. O prazo padrão de insurgência e contraditório administrativo na previdência é de trinta dias a contar do recebimento da intimação de indeferimento.",
+                full: "Decreto 3048/99, Art. 179. É de trinta dias o prazo para a interposição de recurso e para a apresentação de contrarrazões, contados da ciência da decisão..."
+            },
+            {
+                id: 140,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Difícil",
+                q: "A competência de contribuição cujo recolhimento tenha sido efetuado com valor inferior ao limite mínimo mensal será computada normalmente como carência sem necessidade de complementação.",
+                a: false,
+                explanation: "Incorreto. Pós-reforma, nenhuma contribuição inferior ao piso constitucional (salário-mínimo) computa-se para carência, tempo de contribuição ou manutenção da qualidade de segurado.",
+                full: "Decreto 3048/99, Art. 188-A. A competência cujo recolhimento seja inferior ao limite mínimo do salário-de-contribuição não será computada para nenhum fim, exceto se houver complementação..."
+            },
+            {
+                id: 141,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Média",
+                q: "O Fator Acidentário de Prevenção (FAP) consiste em um multiplicador variável de 0,50 a 2,00 a ser aplicado sobre as alíquotas do RAT que incidem sobre as empresas.",
+                a: true,
+                explanation: "Correto. O FAP serve para bonificar com redução de até 50% ou penalizar com aumento de até 100% o tributo de acidentes de trabalho da empresa.",
+                full: "Decreto 3048/99, Art. 202-A. As alíquotas constantes do caput do art. 202 serão reduzidas em até cinquenta por cento ou acrescidas em até cem por cento em razão do Fator Acidentário de Prevenção - FAP..."
+            },
+            {
+                id: 142,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Fácil",
+                q: "O salário de contribuição do segurado empregado doméstico consiste unicamente no valor correspondente ao piso do salário-mínimo de sua localidade, desconsiderando-se remunerações contratuais superiores.",
+                a: false,
+                explanation: "Incorreto. O salário-de-contribuição do doméstico é a remuneração real que consta registrada no seu eSocial e contrato de trabalho, respeitados os tetos da Previdência.",
+                full: "Decreto 3048/99, Art. 214, II: O salário de contribuição do segurado empregado doméstico é a remuneração registrada na Carteira de Trabalho ou Guia de Recolhimento..."
+            },
+            {
+                id: 143,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Difícil",
+                q: "O Conselho de Recursos da Previdência Social (CRPS) é órgão colegiado incumbido de julgar os recursos das decisões do INSS de forma definitiva na via administrativa.",
+                a: true,
+                explanation: "Correto. O CRPS julga de forma paritária (composto por governo, trabalhadores e empresas) os dissídios das autarquias federais.",
+                full: "Decreto 3048/99, Art. 303. O Conselho de Recursos da Previdência Social - CRPS, órgão colegiado com atribuição para julgar os recursos administrativos das decisões do INSS..."
+            },
+            {
+                id: 144,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Difícil",
+                q: "O dirigente ou conselheiro de cooperativa que receba pró-labore ou remuneração decorrente desse cargo de direção condominial é enquadrado como segurado empregado do RGPS.",
+                a: false,
+                explanation: "Incorreto. Dirigentes de cooperativa ou síndicos que aufiram ganhos de suas gestões são classificados como contribuintes individuais (autônomos).",
+                full: "Decreto 3048/99, Art. 9º, V, 'l': como contribuinte individual: [...] o associado eleito para cargo de direção em cooperativa..."
+            },
+            {
+                id: 145,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Fácil",
+                q: "O estudante maior de dezesseis anos de idade que não exerça atividade remunerada obrigatória pode filiar-se ao RGPS como segurado facultativo.",
+                a: true,
+                explanation: "Correto. O estudante sem remuneração e maior de 16 anos representa a figura típica do segurado facultativo por excelência.",
+                full: "Decreto 3048/99, Art. 11, § 1º, I: Podem filiar-se facultativamente, [...] o estudante maior de dezesseis anos..."
+            },
+            {
+                id: 146,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Média",
+                q: "O segurado facultativo que deixar de verter contribuições perde a qualidade de segurado imediatamente no dia útil seguinte ao do encerramento da última competência paga.",
+                a: false,
+                explanation: "Incorreto. O segurado facultativo detém um período de graça estendido de 6 meses após a cessação de seus pagamentos voluntários.",
+                full: "Decreto 3048/99, Art. 13, VI: Mantém a qualidade de segurado, independente de contribuição: VI - até seis meses após a cessação das contribuições, o segurado facultativo."
+            },
+            {
+                id: 147,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Difícil",
+                q: "O dependente inválido do segurado perde essa qualidade caso venha a se casar ou constituir união estável, presumindo-se a cessação de sua dependência econômica originária.",
+                a: true,
+                explanation: "Correto. O casamento de dependente inválido afasta por presunção a sua necessidade de amparo do segurado falecido.",
+                full: "Decreto 3048/99, Art. 17, § 1º, V: Perde-se a qualidade de dependente: [...] pelo casamento ou pela constituição de união estável do dependente inválido..."
+            },
+            {
+                id: 148,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Fácil",
+                q: "A apresentação de certidão de nascimento de filhos em comum ou declaração conjunta de Imposto de Renda constituem meios idôneos de início de prova material para comprovar a união estável.",
+                a: true,
+                explanation: "Correto. Tais documentos representam início de prova material documental contemporânea aceitos pacificamente pelo INSS.",
+                full: "Decreto 3048/99, Art. 22, § 3º: São considerados início de prova material: [...] certidão de nascimento de filho havido em comum, declaração de imposto de renda..."
+            },
+            {
+                id: 149,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Média",
+                q: "O valor da renda mensal do auxílio por incapacidade temporária (antigo auxílio-doença) corresponde à alíquota de 91% aplicada sobre o salário de benefício.",
+                a: true,
+                explanation: "Correto. A alíquota do benefício por incapacidade temporária é fixada uniformemente em 91% do salário-de-benefício.",
+                full: "Decreto 3048/99, Art. 39. A renda mensal do auxílio por incapacidade temporária consiste em noventa e um por cento do salário de benefício..."
+            },
+            {
+                id: 150,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Difícil",
+                q: "A renda mensal da aposentadoria por incapacidade permanente corresponde sempre a 100% do salário-de-benefício do segurado, independentemente da causa geradora.",
+                a: false,
+                explanation: "Incorreto. Sob a nova sistemática, corresponde a 60% com acréscimo de 2% por ano de trabalho excedente, sendo de 100% apenas quando decorrente de acidente de trabalho.",
+                full: "Decreto 3048/99, Art. 44. A renda mensal da aposentadoria por incapacidade permanente [...] consiste em sessenta por cento do salário de benefício [...] sendo de cem por cento quando decorrente de acidente de trabalho..."
+            },
+            {
+                id: 151,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Difícil",
+                q: "O segurado em gozo de aposentadoria especial que retornar de forma voluntária ao exercício de atividade nociva que ensejou o benefício terá o pagamento de sua aposentadoria suspenso pelo INSS.",
+                a: true,
+                explanation: "Correto. O intuito da aposentadoria especial é afastar o trabalhador do risco, sendo vedado o retorno voluntário sob pena de suspensão.",
+                full: "Decreto 3048/99, Art. 69. O aposentado em modalidade especial que retornar ao exercício de atividade com exposição a agentes nocivos [...] terá o pagamento do benefício suspenso..."
+            },
+            {
+                id: 152,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Média",
+                q: "O salário-maternidade é devido pelo prazo de 120 dias ao segurado que adotar ou obtiver guarda judicial para fins de adoção de criança com até 12 anos de idade.",
+                a: true,
+                explanation: "Correto. O direito de guarda para adoção estende-se também aos segurados do sexo masculino, com prazo uniforme de 120 dias.",
+                full: "Decreto 3048/99, Art. 93-A. Ao segurado ou segurada que adotar ou obtiver guarda judicial para fins de adoção de criança será devido salário-maternidade pelo período de cento e vinte dias..."
+            },
+            {
+                id: 153,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Fácil",
+                q: "O recebimento do benefício de auxílio-acidente impede o segurado de participar de programas oficiais de reabilitação profissional conduzidos pelo INSS.",
+                a: false,
+                explanation: "Incorreto. O segurado que possui sequelas consolidadas e recebe auxílio-acidente tem pleno direito de reingressar em programas de reabilitação caso suas condições laborais sofram declínio.",
+                full: "Decreto 3048/99, Art. 136. A reabilitação profissional destina-se a proporcionar aos beneficiários, inclusive em gozo de auxílio-acidente, os meios de reeducação profissional..."
+            },
+            {
+                id: 154,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Média",
+                q: "Para o dependente maior de 16 anos, a pensão por morte será devida desde a data do falecimento se for requerida em até 90 dias após o óbito do segurado.",
+                a: true,
+                explanation: "Correto. Trata-se do prazo padrão estabelecido pela legislação previdenciária em vigor pós-Lei 13.846/2019 para evitar atrasos de requerimento.",
+                full: "Decreto 3048/99, Art. 113, I, 'b': A pensão por morte será devida: [...] b) do óbito, quando requerida até noventa dias depois deste, para os dependentes maiores de dezesseis anos."
+            },
+            {
+                id: 155,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Difícil",
+                q: "Para o dependente menor de dezesseis anos de idade, a pensão por morte é devida desde a data do óbito contanto que o requerimento seja protocolado em até 180 dias após o falecimento.",
+                a: true,
+                explanation: "Correto. Os absolutamente incapazes possuem prazo legal estendido de 180 dias para requerer com efeito retroativo completo ao óbito.",
+                full: "Decreto 3048/99, Art. 113, I, 'a': A pensão por morte será devida: [...] a) do óbito, quando requerida até cento e oitenta dias após o falecimento, para os menores de dezesseis anos."
+            },
+            {
+                id: 156,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Difícil",
+                q: "A pensão por morte devida ao cônjuge inválido ou com deficiência grave será concedida de forma vitalícia, independentemente da idade do cônjuge na data do óbito do segurado.",
+                a: true,
+                explanation: "Correto. O estado de invalidez ou deficiência grave afasta a aplicação das travas de idade e tempo de casamento para a vitaliciedade.",
+                full: "Decreto 3048/99, Art. 114, § 2º: O cônjuge inválido ou com deficiência grave terá a duração do benefício mantida enquanto perdurar a invalidez ou deficiência, afastados os limites de idade..."
+            },
+            {
+                id: 157,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Fácil",
+                q: "O dependente do RGPS pode acumular validamente duas pensões por morte deixadas por diferentes cônjuges ou companheiros no âmbito do próprio RGPS.",
+                a: false,
+                explanation: "Incorreto. Há vedação expressa ao acúmulo de mais de uma pensão por morte de cônjuge ou companheiro deixada no RGPS; o beneficiário deve exercer direito de opção pelo mais vantajoso.",
+                full: "Decreto 3048/99, Art. 124, VI: É vedada a acumulação de mais de uma pensão por morte deixada por cônjuge ou companheiro no âmbito do Regime Geral de Previdência..."
+            },
+            {
+                id: 158,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Difícil",
+                q: "É permitido ao segurado acumular uma pensão por morte do RGPS com uma aposentadoria própria do RGPS, sofrendo contudo restrições de cálculo no valor da menor prestação.",
+                a: true,
+                explanation: "Correto. O acúmulo de pensão e aposentadoria é autorizado, aplicando-se faixas de dedução no benefício menos vantajoso nos termos do art. 24 da EC 103/2019 e do regulamento.",
+                full: "Decreto 3048/99, Art. 122. Na hipótese de acumulação de pensão por morte com aposentadoria do RGPS [...] o valor do benefício menos vantajoso será reduzido proporcionalmente..."
+            },
+            {
+                id: 159,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Fácil",
+                q: "O Serviço Social do INSS é incumbido prioritariamente de analisar e conceder empréstimos consignados de custeio subsidiados aos aposentados com baixa renda.",
+                a: false,
+                explanation: "Incorreto. O Serviço Social do INSS possui atribuição de orientação, esclarecimento e facilitação de acesso aos recursos sociais do município e direitos previdenciários, não tendo qualquer caráter de agência financeira ou bancária.",
+                full: "Decreto 3048/99, Art. 136: O Serviço Social tem por fim prestar esclarecimento e facilitação aos segurados para solução de problemas de relacionamento com o INSS..."
+            },
+            {
+                id: 160,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Média",
+                q: "As importâncias pagas a título de participação nos lucros ou resultados (PLR) da empresa, quando em conformidade com as exigências legais, não integram o salário de contribuição.",
+                a: true,
+                explanation: "Correto. O PLR é isento de encargos previdenciários tendo em vista sua finalidade de incentivo e integração do trabalhador descrita em lei específica.",
+                full: "Decreto 3048/99, Art. 214, § 9º, alínea 't': Não integram o salário-de-contribuição: [...] as importâncias pagas a título de participação nos lucros ou resultados da empresa..."
+            },
+            {
+                id: 161,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Média",
+                q: "A infração a qualquer dispositivo do Regulamento da Previdência Social para a qual não haja penalidade expressamente fixada sujeita o infrator a aplicação de multa administrativa variável.",
+                a: true,
+                explanation: "Correto. O Decreto prevê uma cláusula geral de punibilidade de multas fiscais administrativas aplicadas às condutas em desconformidade e sem penalização específica.",
+                full: "Decreto 3048/99, Art. 283. Por infração a qualquer dispositivo deste Regulamento para a qual não haja penalidade expressamente fixada, fica o infrator sujeito a multa..."
+            },
+            {
+                id: 162,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Fácil",
+                q: "O motorista de aplicativo que transporta passageiros de forma autônoma e sem vínculo com empresa de transporte é filiado obrigatório do RGPS como contribuinte individual.",
+                a: true,
+                explanation: "Correto. A prestação autônoma de transporte ou entregas via aplicativos enquadra-se legalmente como atividade econômica autônoma de contribuinte individual.",
+                full: "Decreto 3048/99, Art. 9º, V, 'j': como contribuinte individual: [...] o motorista que preste serviço de transporte de passageiros em caráter autônomo..."
+            },
+            {
+                id: 163,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Difícil",
+                q: "A Justificação Administrativa suprirá a falta de documentos necessários ao processo administrativo previdenciário, servindo de comprovação cabal de tempo de serviço mesmo sem a presença de início de prova material.",
+                a: false,
+                explanation: "Incorreto. A Justificação Administrativa é de fato um recurso idôneo, contudo ela não pode ser deferida se for pautada exclusivamente em prova testemunhal sem início de prova material documental.",
+                full: "Decreto 3048/99, Art. 182-A: A Justificação Administrativa suprirá a falta de documento [...] não sendo admitida a prova exclusivamente testemunhal para comprovação de tempo de serviço."
+            },
+            {
+                id: 164,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Média",
+                q: "A carência mínima exigida dos dependentes para concessão de benefício de auxílio-reclusão em regime fechado é de 24 contribuições mensais.",
+                a: true,
+                explanation: "Correto. Pós-reforma constitucional de 2019 e alterações do regulamento, o auxílio-reclusão passou a exigir carência mínima correspondente a 24 recolhimentos mensais.",
+                full: "Decreto 3048/99, Art. 29, IV: O período de carência é de: [...] IV - vinte e quatro contribuições mensais, para o auxílio-reclusão."
+            },
+            {
+                id: 165,
+                topic: "Regulamento (Dec. 3048)",
+                difficulty: "Difícil",
+                q: "O valor recebido pela segurada grávida a título de salário-maternidade é considerado salário-de-contribuição, sofrendo a devida incidência de contribuição previdenciária.",
+                a: true,
+                explanation: "Correto. O salário-maternidade é o único benefício por incapacidade sobre o qual incide regularmente a contribuição previdenciária, conforme entendimento consolidado do STF e do Decreto 3048.",
+                full: "Decreto 3048/99, Art. 214, § 2º: Considera-se salário-de-contribuição [...] o salário-maternidade, para fins de incidência das contribuições do segurado..."
+            }
+        ];
+
+        // Core App State Management
+        let state = {
+            correct: 0,
+            incorrect: 0,
+            streak: 0,
+            maxStreak: 0,
+            answeredIds: [],
+            currentQuestion: null,
+            filters: {
+                topic: 'all',
+                difficulty: 'all'
+            }
+        };
+
+        // Synthesizer Engine (Web Audio API) for instant responsive sound feedback
+        let isMuted = false;
+
+        function playSfx(type) {
+            if (isMuted) return;
+            try {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (!AudioCtx) return;
+                const ctx = new AudioCtx();
+                const now = ctx.currentTime;
+                
+                if (type === 'correct') {
+                    // Friendly synthesizer chord
+                    const notes = [261.63, 329.63, 392.00, 523.25]; // C4, E4, G4, C5
+                    notes.forEach((freq, index) => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(freq, now + (index * 0.05));
+                        
+                        gain.gain.setValueAtTime(0.12, now + (index * 0.05));
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + (index * 0.05) + 0.3);
+                        
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start(now + (index * 0.05));
+                        osc.stop(now + (index * 0.05) + 0.35);
+                    });
+                } else if (type === 'incorrect') {
+                    // Deep error buzzer sound
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(140, now);
+                    osc.frequency.linearRampToValueAtTime(75, now + 0.35);
+                    
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+                    
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.4);
+                } else if (type === 'click') {
+                    // Soft tactile click
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(600, now);
+                    gain.gain.setValueAtTime(0.05, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.1);
+                }
+            } catch (e) {
+                console.warn('Audio API blocked or unsupported in current container', e);
+            }
+        }
+
+        function toggleMute() {
+            isMuted = !isMuted;
+            document.getElementById('sound-btn').innerText = isMuted ? '🔇' : '🔊';
+            playSfx('click');
+        }
+
+        // Custom Modal Wrappers to prevent raw alerts/confirms
+        let activeConfirmCallback = null;
+
+        function showConfirmModal(title, msg, onConfirm) {
+            document.getElementById('confirm-title').innerText = title;
+            document.getElementById('confirm-message').innerText = msg;
+            activeConfirmCallback = onConfirm;
+            const modal = document.getElementById('confirm-modal');
+            modal.classList.remove('hidden');
+        }
+
+        function closeConfirmModal(result) {
+            playSfx('click');
+            document.getElementById('confirm-modal').classList.add('hidden');
+            if (result && activeConfirmCallback) {
+                activeConfirmCallback();
+            }
+            activeConfirmCallback = null;
+        }
+
+        function showAlertModal(title, msg, icon = '🏆') {
+            document.getElementById('alert-title').innerText = title;
+            document.getElementById('alert-message').innerText = msg;
+            document.getElementById('alert-icon').innerText = icon;
+            const iconDiv = document.getElementById('alert-icon');
+            if (icon === '🏆') {
+                iconDiv.className = "w-14 h-14 bg-indigo-950/50 text-indigo-400 border border-indigo-900/40 rounded-2xl flex items-center justify-center mx-auto mb-4 text-xl";
+            } else {
+                iconDiv.className = "w-14 h-14 bg-emerald-950/50 text-emerald-400 border border-emerald-900/40 rounded-2xl flex items-center justify-center mx-auto mb-4 text-xl";
+            }
+            document.getElementById('alert-modal').classList.remove('hidden');
+        }
+
+        function closeAlertModal() {
+            playSfx('click');
+            document.getElementById('alert-modal').classList.add('hidden');
+        }
+
+        // Storage Management
+        function loadStorage() {
+            const saved = localStorage.getItem('prevStudyProData100');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    state.correct = parsed.correct || 0;
+                    state.incorrect = parsed.incorrect || 0;
+                    state.streak = parsed.streak || 0;
+                    state.maxStreak = parsed.maxStreak || 0;
+                    state.answeredIds = parsed.answeredIds || [];
+                    state.currentQuestion = parsed.currentQuestion || null;
+                    if (parsed.filters) {
+                        state.filters = parsed.filters;
+                        document.getElementById('filter-topic').value = state.filters.topic;
+                        document.getElementById('filter-difficulty').value = state.filters.difficulty;
+                    }
+                } catch(e) {
+                    console.error("Storage corrupted, rebuilding...", e);
+                }
+            }
+            updateStatsUI();
+        }
+
+        function saveStorage() {
+            localStorage.setItem('prevStudyProData100', JSON.stringify(state));
+        }
+
+        function confirmReset() {
+            showConfirmModal(
+                "Zerar Progresso", 
+                "Tem certeza absoluta de que deseja redefinir todas as suas estatísticas do PrevStudy Pro?", 
+                () => {
+                    state.correct = 0;
+                    state.incorrect = 0;
+                    state.streak = 0;
+                    state.maxStreak = 0;
+                    state.answeredIds = [];
+                    state.currentQuestion = null;
+                    saveStorage();
+                    updateStatsUI();
+                    nextQuestion();
+                }
+            );
+        }
+
+        // UI Updates
+        function updateStatsUI() {
+            document.getElementById('correct-count').innerText = state.correct;
+            document.getElementById('incorrect-count').innerText = state.incorrect;
+            document.getElementById('streak-value').innerText = state.streak;
+            document.getElementById('max-streak-value').innerText = state.maxStreak;
+            
+            const total = state.correct + state.incorrect;
+            const accuracy = total > 0 ? Math.round((state.correct / total) * 100) : 0;
+            document.getElementById('accuracy-rate').innerText = accuracy + '%';
+        }
+
+        // Navigation Tab Switching
+        function switchTab(tabId) {
+            playSfx('click');
+            document.getElementById('tab-content-quiz').classList.add('hidden');
+            document.getElementById('tab-content-vademecum').classList.add('hidden');
+            document.getElementById('tab-quiz').className = "py-2.5 px-4 font-bold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition-all flex items-center gap-2";
+            document.getElementById('tab-vademecum').className = "py-2.5 px-4 font-bold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition-all flex items-center gap-2";
+
+            if (tabId === 'quiz') {
+                document.getElementById('tab-content-quiz').classList.remove('hidden');
+                document.getElementById('tab-quiz').className = "py-2.5 px-4 font-bold text-sm border-b-2 border-indigo-500 text-indigo-400 transition-all flex items-center gap-2";
+            } else if (tabId === 'vademecum') {
+                document.getElementById('tab-content-vademecum').classList.remove('hidden');
+                document.getElementById('tab-vademecum').className = "py-2.5 px-4 font-bold text-sm border-b-2 border-indigo-500 text-indigo-400 transition-all flex items-center gap-2";
+                renderVadeMecum();
+            }
+        }
+
+        // Filter Logic
+        function applyFilters() {
+            playSfx('click');
+            state.filters.topic = document.getElementById('filter-topic').value;
+            state.filters.difficulty = document.getElementById('filter-difficulty').value;
+            saveStorage();
+            
+            // Force drawing a new question fitting the filter
+            nextQuestion(true);
+        }
+
+        // Quiz Core Mechanics
+        function nextQuestion(forceNew = false) {
+            // Apply current database filters
+            let pool = questions;
+            if (state.filters.topic !== 'all') {
+                pool = pool.filter(q => q.topic === state.filters.topic);
+            }
+            if (state.filters.difficulty !== 'all') {
+                pool = pool.filter(q => q.difficulty === state.filters.difficulty);
+            }
+
+            // Fallback if filter turns out empty
+            if (pool.length === 0) {
+                showAlertModal("Sem Questões", `Não há questões correspondentes ao filtro ativo:\n\nTópico: ${state.filters.topic}\nDificuldade: ${state.filters.difficulty}.\n\nReajustando para padrão completo.`, '⚠️');
+                document.getElementById('filter-topic').value = 'all';
+                document.getElementById('filter-difficulty').value = 'all';
+                state.filters.topic = 'all';
+                state.filters.difficulty = 'all';
+                saveStorage();
+                return nextQuestion();
+            }
+
+            // Filter unanswered in this pool
+            let available = pool.filter(q => !state.answeredIds.includes(q.id));
+
+            // If all matched questions answered, trigger cycle completion and reset answered ids for this subset
+            if (available.length === 0) {
+                showAlertModal("Ciclo Concluído!", "Você resolveu todas as questões disponíveis com este filtro! Vamos reiniciá-las para novos estudos.", "🏆");
+                // Clear answered IDs in this specific subset
+                const poolIds = pool.map(item => item.id);
+                state.answeredIds = state.answeredIds.filter(id => !poolIds.includes(id));
+                saveStorage();
+                available = pool;
+            }
+
+            // Selection
+            const lastId = state.currentQuestion ? state.currentQuestion.id : null;
+            let chosen = available[Math.floor(Math.random() * available.length)];
+            
+            // Prevent drawing the exact same question consecutively if pool size allows
+            if (available.length > 1 && chosen.id === lastId) {
+                const index = available.findIndex(q => q.id === chosen.id);
+                const nextIndex = (index + 1) % available.length;
+                chosen = available[nextIndex];
+            }
+
+            state.currentQuestion = chosen;
+            saveStorage();
+
+            // Render Game Area UI
+            const gameArea = document.getElementById('game-area');
+            gameArea.className = "bg-slate-950 p-6 md:p-8 rounded-3xl shadow-2xl border border-slate-900 fade-in relative overflow-hidden transition-all duration-300";
+
+            document.getElementById('question-text').innerText = state.currentQuestion.q;
+            document.getElementById('q-topic').innerText = state.currentQuestion.topic;
+            document.getElementById('q-difficulty').innerText = state.currentQuestion.difficulty;
+            
+            // Set Difficulty Badge Colors
+            const diffSpan = document.getElementById('q-difficulty');
+            if (state.currentQuestion.difficulty === 'Fácil') {
+                diffSpan.className = "text-[10px] font-bold uppercase px-2 py-1 rounded-lg bg-emerald-950/40 text-emerald-400 border border-emerald-900/30";
+            } else if (state.currentQuestion.difficulty === 'Média') {
+                diffSpan.className = "text-[10px] font-bold uppercase px-2 py-1 rounded-lg bg-blue-950/40 text-blue-400 border border-blue-900/30";
+            } else if (state.currentQuestion.difficulty === 'Difícil') {
+                diffSpan.className = "text-[10px] font-bold uppercase px-2 py-1 rounded-lg bg-amber-950/40 text-amber-400 border border-amber-900/30";
+            } else {
+                diffSpan.className = "text-[10px] font-bold uppercase px-2 py-1 rounded-lg bg-rose-950/40 text-rose-400 border border-rose-900/30";
+            }
+
+            // Calculation of active question indicators
+            const totalQuestions = pool.length;
+            const currentNumber = pool.filter(q => state.answeredIds.includes(q.id)).length + 1;
+            document.getElementById('question-progress').innerText = `Questão ${Math.min(currentNumber, totalQuestions)} de ${totalQuestions}`;
+
+            document.getElementById('feedback-area').classList.add('hidden');
+            document.getElementById('options-area').classList.remove('hidden');
+        }
+
+        // Checking Answers
+        function checkAnswer(userChoice) {
+            if (!state.answeredIds.includes(state.currentQuestion.id)) {
+                state.answeredIds.push(state.currentQuestion.id);
+            }
+
+            const isCorrect = (userChoice === state.currentQuestion.a);
+            const statusDiv = document.getElementById('result-status');
+            const explP = document.getElementById('explanation');
+            const gameArea = document.getElementById('game-area');
+
+            if (isCorrect) {
+                state.correct++;
+                state.streak++;
+                if (state.streak > state.maxStreak) {
+                    state.maxStreak = state.streak;
+                }
+                statusDiv.innerHTML = "<span class='flex items-center gap-2'>🎉 Resposta Correta!</span>";
+                statusDiv.className = "text-xl font-black text-emerald-400 mb-2";
+                gameArea.classList.add('correct-glow');
+                playSfx('correct');
+            } else {
+                state.incorrect++;
+                state.streak = 0;
+                statusDiv.innerHTML = "<span class='flex items-center gap-2'>❌ Resposta Incorreta</span>";
+                statusDiv.className = "text-xl font-black text-rose-400 mb-2";
+                gameArea.classList.add('incorrect-glow');
+                playSfx('incorrect');
+            }
+
+            explP.innerText = state.currentQuestion.explanation;
+
+            updateStatsUI();
+            saveStorage();
+
+            document.getElementById('options-area').classList.add('hidden');
+            document.getElementById('feedback-area').classList.remove('hidden');
+        }
+
+        // Vade Mecum / Legislação Browser
+        function renderVadeMecum() {
+            const listContainer = document.getElementById('vade-list');
+            const searchVal = document.getElementById('vade-search').value.toLowerCase();
+            const topicVal = document.getElementById('vade-topic-filter').value;
+
+            listContainer.innerHTML = '';
+
+            let filtered = questions;
+            if (topicVal !== 'all') {
+                filtered = filtered.filter(q => q.topic === topicVal);
+            }
+
+            if (searchVal.trim() !== '') {
+                filtered = filtered.filter(q => 
+                    q.q.toLowerCase().includes(searchVal) || 
+                    q.explanation.toLowerCase().includes(searchVal) || 
+                    q.full.toLowerCase().includes(searchVal)
+                );
+            }
+
+            if (filtered.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="text-center py-12 bg-slate-900/30 rounded-2xl border border-dashed border-slate-800">
+                        <span class="text-3xl">🔍</span>
+                        <h4 class="text-slate-300 font-bold mt-2 text-sm">Nenhum artigo previdenciário encontrado</h4>
+                        <p class="text-slate-500 text-xs mt-1">Experimente buscar por outros termos de direito ou altere os filtros.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            filtered.forEach(item => {
+                const card = document.createElement('div');
+                card.className = "bg-slate-900/50 hover:bg-slate-900 border border-slate-850 p-5 rounded-2xl transition-all duration-200 group";
+                
+                card.innerHTML = `
+                    <div class="flex justify-between items-start gap-4 mb-3">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="text-[10px] font-extrabold uppercase bg-slate-800 text-slate-300 px-2 py-1 rounded-md border border-slate-700">${item.topic}</span>
+                            <span class="text-[9px] font-bold uppercase px-2 py-0.5 rounded-md ${item.a ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-900/30' : 'bg-slate-800 text-slate-400'}">Gabarito: ${item.a ? 'V' : 'F'}</span>
+                        </div>
+                        <span class="text-[10px] text-slate-500 font-mono">Questão #${item.id}</span>
+                    </div>
+                    <p class="text-sm text-slate-100 font-medium mb-3 leading-relaxed">${item.q}</p>
+                    <div class="bg-slate-950/80 p-3.5 rounded-xl border border-slate-900 text-xs text-slate-300 space-y-2">
+                        <p class="font-semibold text-indigo-400">⚖️ Legislação Referencial:</p>
+                        <p class="leading-relaxed text-slate-400">${item.full}</p>
+                    </div>
+                `;
+                listContainer.appendChild(card);
+            });
+        }
+
+        // General Modals Logic
+        function showLegalModal() {
+            playSfx('click');
+            const contentDiv = document.getElementById('modal-content');
+            
+            contentDiv.innerHTML = `
+                <div class="space-y-4">
+                    <div>
+                        <h4 class="text-xs uppercase font-extrabold text-indigo-400 mb-1">Fundamento Literal na Lei:</h4>
+                        <p class="text-slate-100 font-semibold leading-relaxed">${state.currentQuestion.full}</p>
+                    </div>
+                    <div class="border-t border-slate-800 pt-3">
+                        <h4 class="text-xs uppercase font-extrabold text-emerald-400 mb-1">Gabarito:</h4>
+                        <p class="text-slate-200 font-medium">${state.currentQuestion.a ? "🟩 Verdadeiro" : "🟥 Falso"}</p>
+                    </div>
+                    <div class="border-t border-slate-800 pt-3">
+                        <h4 class="text-xs uppercase font-extrabold text-slate-400 mb-1">Doutrina / Aplicação do RGPS:</h4>
+                        <p class="text-slate-300 italic text-xs leading-relaxed">${state.currentQuestion.explanation}</p>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('legal-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            playSfx('click');
+            document.getElementById('legal-modal').classList.add('hidden');
+        }
+
+        // Accessibility: Keyboard Navigation Listeners
+        window.addEventListener('keydown', (e) => {
+            const quizActive = !document.getElementById('tab-content-quiz').classList.contains('hidden');
+            const feedbackHidden = document.getElementById('feedback-area').classList.contains('hidden');
+            const modalsOpen = !document.getElementById('legal-modal').classList.contains('hidden') || 
+                               !document.getElementById('confirm-modal').classList.contains('hidden') || 
+                               !document.getElementById('alert-modal').classList.contains('hidden');
+
+            if (!quizActive || modalsOpen) return;
+
+            if (feedbackHidden) {
+                // If options are active, let user answer using V/F or Arrow keys
+                if (e.key === 'v' || e.key === 'V' || e.key === 'ArrowLeft' || e.key === 's' || e.key === 'S') {
+                    checkAnswer(true);
+                } else if (e.key === 'f' || e.key === 'F' || e.key === 'ArrowRight' || e.key === 'n' || e.key === 'N') {
+                    checkAnswer(false);
+                }
+            } else {
+                // If feedback is showing, Enter or Space goes to next question
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    nextQuestion();
+                }
+            }
+        });
+
+        // Initialize App on Window Load
+        window.onload = () => {
+            loadStorage();
+            if (!state.currentQuestion || state.answeredIds.includes(state.currentQuestion.id)) {
+                nextQuestion();
+            } else {
+                // Restore state UI in case of reload
+                document.getElementById('question-text').innerText = state.currentQuestion.q;
+                document.getElementById('q-topic').innerText = state.currentQuestion.topic;
+                document.getElementById('q-difficulty').innerText = state.currentQuestion.difficulty;
+                
+                // Set restoration styles
+                const diffSpan = document.getElementById('q-difficulty');
+                if (state.currentQuestion.difficulty === 'Fácil') {
+                    diffSpan.className = "text-[10px] font-bold uppercase px-2 py-1 rounded-lg bg-emerald-950/40 text-emerald-400 border border-emerald-900/30";
+                } else if (state.currentQuestion.difficulty === 'Média') {
+                    diffSpan.className = "text-[10px] font-bold uppercase px-2 py-1 rounded-lg bg-blue-950/40 text-blue-400 border border-blue-900/30";
+                } else if (state.currentQuestion.difficulty === 'Difícil') {
+                    diffSpan.className = "text-[10px] font-bold uppercase px-2 py-1 rounded-lg bg-amber-950/40 text-amber-400 border border-amber-900/30";
+                } else {
+                    diffSpan.className = "text-[10px] font-bold uppercase px-2 py-1 rounded-lg bg-rose-950/40 text-rose-400 border border-rose-900/30";
+                }
+            }
+        };
+    </script>
+</body>
+</html>
